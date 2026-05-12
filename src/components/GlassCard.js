@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
+
 
 const GlassCard = ({ children, style }) => {
   // BlurView works natively on iOS; on Android we fall back to a semi-transparent View
