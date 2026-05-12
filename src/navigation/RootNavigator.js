@@ -5,7 +5,7 @@ import AuthStack from './AuthStack';
 import MainStack from './MainStack';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
-import { store, persistor } from '../store';
+import { store } from '../store';
 
 const RootContent = () => {
   // Get authentication state from Redux store
@@ -21,9 +21,9 @@ const RootContent = () => {
 
 const RootNavigator = () => (
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
+    {/* <PersistGate loading={null} persistor={persistor}> */}
       <RootContent />
-    </PersistGate>
+    {/* </PersistGate> */}
   </Provider>
 );
 
