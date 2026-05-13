@@ -1,39 +1,44 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 
-const InputField = ({ icon, placeholder, secureTextEntry, error, ...props }) => {
+const InputField = ({ icon, placeholder, secureTextEntry, iconStyle, error, ...props }) => {
+
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
-    <View style={[styles.inputRow, error && styles.inputRowError]}>
-      
-      {/* Left Icon */}
-      <Image source={icon} style={styles.inputIcon} />
+    <View>
+      <View style={[styles.inputRow, error && styles.inputRowError]}>
 
-      <TextInput
-        style={styles.input}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        secureTextEntry={hidden}
-        {...props}
-      />
+        {/* Left Icon */}
+        <Image source={icon} style={[styles.inputIcon, iconStyle]} />
 
-      {/* Eye Icon */}
-      {secureTextEntry && (
-        <TouchableOpacity
-          onPress={() => setHidden(h => !h)}
-          style={styles.eyeBtn}
-        >
-          <Image
-            source={
-              hidden
-                ? require('../assets/images/visible.png')
-                : require('../assets/images/hide.png')
-            }
-            style={styles.eyeIcon}
-          />
-        </TouchableOpacity>
-      )}
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor="#999"
+          secureTextEntry={hidden}
+          {...props}
+         
+        />
+
+        {/* Eye Icon */}
+        {secureTextEntry && (
+          <TouchableOpacity
+            onPress={() => setHidden(h => !h)}
+            style={styles.eyeBtn}
+          >
+            <Image
+              source={
+                hidden
+                  ? require('../assets/images/visible.png')
+                  : require('../assets/images/hide.png')
+              }
+              style={styles.eyeIcon}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+      {error && <Text style={styles.fieldErrorText}>{error}</Text>}
     </View>
   );
 };
@@ -77,6 +82,14 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     tintColor: '#555',
+  },
+
+  fieldErrorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: -6,
+    marginBottom: 10,
+    marginLeft: 4,
   },
 });
 

@@ -112,8 +112,7 @@ const LoginScreen = ({navigation}) => {
   
   return (
     <AppBackground>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* Logo */}
         <View style={styles.logoArea}>
           <View style={styles.logoPlaceholder}>
@@ -141,9 +140,9 @@ const LoginScreen = ({navigation}) => {
             onChangeText={v => handleChange('email', v)}
             keyboardType="email-address" 
             autoCapitalize="none" 
-            error={!!errors.email}
+            error={errors.email}
           />
-          {errors.email ? <Text style={styles.fieldErrorText}>{errors.email}</Text> : null}
+         
 
           <InputField 
             icon={lockIcon} 
@@ -151,9 +150,9 @@ const LoginScreen = ({navigation}) => {
             value={form.password} 
             onChangeText={v => handleChange('password', v)}
             secureTextEntry 
-            error={!!errors.password}
+            error={errors.password}
           />
-          {errors.password ? <Text style={styles.fieldErrorText}>{errors.password}</Text> : null}
+         
 
           <PrimaryButton label="Login" onPress={handleLogin} loading={loading} />
 
@@ -164,29 +163,12 @@ const LoginScreen = ({navigation}) => {
             </TouchableOpacity>
           </View>
 
-    <View style={styles.loginRow}>
+          <View style={styles.loginRow}>
             <Text style={styles.loginText}>Forgot Password ? </Text>
-            <TouchableOpacity onPress={()=>{navigation.navigate('Register')}}>
+            <TouchableOpacity onPress={()=>{navigation.navigate('Forgot')}}>
               <Text style={styles.loginLink}>Click Here</Text>
             </TouchableOpacity>
           </View>
-
-          {/* <View style={styles.rulesCard}>
-            <Text style={styles.rulesTitle}>
-              <Text style={styles.rulesBold}>Password </Text>
-              must contain:
-            </Text>
-            <View style={styles.rulesGrid}>
-              {PASSWORD_RULES.map(rule => (
-                <View key={rule.id} style={styles.ruleItem}>
-                  <View style={styles.ruleCheck}>
-                    <Text style={styles.ruleCheckMark}>✓</Text>
-                  </View>
-                  <Text style={styles.ruleLabel}>{rule.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View> */}
         </GlassCard>
 
       </ScrollView>

@@ -135,7 +135,7 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <AppBackground>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* Logo */}
         <View style={styles.logoArea}>
@@ -162,9 +162,9 @@ const RegisterScreen = ({ navigation }) => {
             placeholder="Full Name"
             value={form.fullName} 
             onChangeText={v => handleChange('fullName', v)} 
-            error={!!errors.fullName}
+            error={errors.fullName}
           />
-          {errors.fullName ? <Text style={styles.fieldErrorText}>{errors.fullName}</Text> : null}
+         
 
           <InputField 
             icon={phoneIcon} 
@@ -172,9 +172,10 @@ const RegisterScreen = ({ navigation }) => {
             value={form.mobile} 
             onChangeText={v => handleChange('mobile', v)}
             keyboardType="phone-pad" 
-            error={!!errors.mobile}
+            error={errors.mobile}
+            maxLength={10}
           />
-          {errors.mobile ? <Text style={styles.fieldErrorText}>{errors.mobile}</Text> : null}
+          
 
           <InputField 
             icon={emailIcon} 
@@ -183,9 +184,9 @@ const RegisterScreen = ({ navigation }) => {
             onChangeText={v => handleChange('email', v)}
             keyboardType="email-address" 
             autoCapitalize="none" 
-            error={!!errors.email}
+            error={errors.email}
           />
-          {errors.email ? <Text style={styles.fieldErrorText}>{errors.email}</Text> : null}
+          
 
           <InputField 
             icon={lockIcon} 
@@ -193,9 +194,8 @@ const RegisterScreen = ({ navigation }) => {
             value={form.password} 
             onChangeText={v => handleChange('password', v)}
             secureTextEntry 
-            error={!!errors.password}
+            error={errors.password}
           />
-          {errors.password ? <Text style={styles.fieldErrorText}>{errors.password}</Text> : null}
 
           <InputField 
             icon={lockIcon} 
@@ -203,10 +203,9 @@ const RegisterScreen = ({ navigation }) => {
             value={form.confirmPassword} 
             onChangeText={v => handleChange('confirmPassword', v)}
             secureTextEntry 
-            error={!!errors.confirmPassword}
+            error={errors.confirmPassword}
           />
-          {errors.confirmPassword ? <Text style={styles.fieldErrorText}>{errors.confirmPassword}</Text> : null}
-
+          
           <PrimaryButton label="Sign Up" onPress={handleSignUp} loading={loading} />
 
           <View style={styles.loginRow}>
@@ -240,7 +239,7 @@ const RegisterScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40 },
+  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 60},
   logoArea: { alignItems: 'center', paddingTop: 50, marginBottom: 24 },
   logoPlaceholder: {
     width: 80, height: 80, borderRadius: 40,
