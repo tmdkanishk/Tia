@@ -1,23 +1,23 @@
 // src/components/BottomTabBar.js
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const TABS = [
-  { id: 'Home',     icon: '🏠', screen: 'Dashboard' },
-  { id: 'Policies', icon: '🛡️', screen: 'Policies' },
-  { id: 'Profile',  icon: '👤', screen: 'Profile' },
-  { id: 'Support',  icon: '🎧', screen: 'Support' },
+  { id: 'Home', icon: '🏠', screen: 'home' },
+  { id: 'Policies', icon: '🛡️', screen: 'policies' },
+  { id: 'Profile', icon: '👤', screen: 'profile' },
+  { id: 'Support', icon: '🎧', screen: 'support' },
 ];
 
-const BottomTabBar = ({ navigation, active }) => (
+const BottomTabBar = ({ onButtonClick, active }) => (
   <View style={styles.tabBar}>
     {TABS.map(tab => {
-      const isActive = active === tab.id;
+      const isActive = active === tab.screen;
       return (
         <TouchableOpacity
           key={tab.id}
           style={styles.tabItem}
-          onPress={() => navigation?.navigate(tab.screen)}
+          onPress={() => onButtonClick(tab.screen)}
           activeOpacity={0.7}
         >
           {isActive && <View style={styles.activeIndicator} />}
@@ -48,6 +48,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 20,
+    alignItems: 'flex-start',
+    height: 136
   },
   tabItem: {
     flex: 1,
@@ -83,4 +85,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomTabBar;
+export default memo(BottomTabBar);

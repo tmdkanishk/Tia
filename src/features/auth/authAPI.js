@@ -13,4 +13,6 @@ const API = axios.create({
 
 export const loginAPI = (data) => API.post('/api/auth/login', data);
 export const registerAPI = (data) => API.post('/api/auth/register', data);
-export const verifyOtp = (data) => API.post('/api/auth/verify-otp', data)
+export const verifyOtp = (data) => API.post('/api/auth/verify-otp', data);
+export const forgotPassword = (data) => API.post('/api/auth/forgot-password', data);
+export const resetPassword = (data) => API.post('/api/auth/reset-password', data);
