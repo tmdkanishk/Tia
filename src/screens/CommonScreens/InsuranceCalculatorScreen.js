@@ -5,7 +5,7 @@ import {
   ScrollView, StyleSheet, StatusBar, Alert,
 } from 'react-native';
 import AppBackground from '../../components/AppBackground';
-import GlassCard from '../../components/GlassCard';
+import HeaderComponent from '../../components/HeaderComponent';
 import { calculateFireInsuranceAPI, formatFireInsurancePayload } from '../../features/fireInsurance/fireInsuranceAPI';
 
 /* ─── Small reusable atoms ───────────────────────────────────── */
@@ -129,22 +129,7 @@ const InsuranceCalculatorScreen = ({ navigation }) => {
       <StatusBar barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation?.goBack()} activeOpacity={0.8}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>FIRE INSURANCE</Text>
-          <View style={styles.headerDividerRow}>
-            <View style={styles.headerDivLine} />
-            <Text style={styles.headerSub}>CALCULATOR</Text>
-            <View style={styles.headerDivLine} />
-          </View>
-        </View>
-        <View style={styles.calcIconBtn}>
-          <Text style={styles.calcIcon}>🧮</Text>
-        </View>
-      </View>
+       <HeaderComponent/>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
