@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 
 
-const GlassCard = ({ children, style }) => {
+const GlassCard = ({ children, style, innerStyle }) => {
   // BlurView works natively on iOS; on Android we fall back to a semi-transparent View
   // if (Platform.OS === 'ios') {
   //   return (
@@ -20,7 +20,7 @@ const GlassCard = ({ children, style }) => {
   // Android fallback — layered Views simulate the glass look
   return (
     <View style={[styles.card, styles.androidCard, style]}>
-      <View style={styles.androidInner}>{children}</View>
+      <View style={[styles.androidInner, innerStyle]}>{children}</View>
     </View>
   );
 };

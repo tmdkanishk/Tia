@@ -1,26 +1,24 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 
-const InputField = ({ icon, placeholder, secureTextEntry, iconStyle, error, ...props }) => {
+const InputField = ({ icon, placeholder, label, secureTextEntry, iconStyle, containerInputStyle, error, ...props }) => {
 
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
     <View>
-      <View style={[styles.inputRow, error && styles.inputRowError]}>
-
+      {label && <Text style={{ fontSize: 14, color: '#fff', marginBottom: 8 }}>{label}</Text>}
+      <View style={[styles.inputRow, containerInputStyle, error && styles.inputRowError]}>
         {/* Left Icon */}
-        <Image source={icon} style={[styles.inputIcon, iconStyle]} />
-
+        {icon &&<Image source={icon} style={[styles.inputIcon, iconStyle]} />}
         <TextInput
           style={styles.input}
           placeholder={placeholder}
           placeholderTextColor="#999"
           secureTextEntry={hidden}
           {...props}
-         
+          
         />
-
         {/* Eye Icon */}
         {secureTextEntry && (
           <TouchableOpacity
