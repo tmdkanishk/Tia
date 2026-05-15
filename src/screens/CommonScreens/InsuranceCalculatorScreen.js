@@ -103,10 +103,10 @@ const InsuranceCalculatorScreen = ({ navigation }) => {
     try {
       const payload = formatFireInsurancePayload(form);
       console.log('Sending payload:', payload);
-      
+
       const response = await calculateFireInsuranceAPI(payload);
       console.log('API Response:', response.data);
-      
+
       if (response.data.success) {
         setResult(response.data.data);
       } else {
@@ -126,194 +126,196 @@ const InsuranceCalculatorScreen = ({ navigation }) => {
 
   return (
     <AppBackground>
-      <StatusBar barStyle="light-content" />
+      <View >
+        {/* ── Header ── */}
+        <HeaderComponent />
 
-      {/* ── Header ── */}
-       <HeaderComponent/>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={{ height: '100%' }}>
+            {/* ── Enter Details Card ── */}
+            <SectionCard>
+              <SectionHeader label="Enter Details" />
+              <FormRow icon="👷" label="Customer Name" placeholder="Enter customer name"
+                value={form.customerName} onChangeText={set('customerName')} />
+              <View style={styles.divider} />
+              <FormRow icon="🏠" label="Address" placeholder="Enter address"
+                value={form.address} onChangeText={set('address')} />
+              <View style={styles.divider} />
+              <FormRow icon="📮" label="PIN Code" placeholder="Enter PIN code"
+                value={form.pinCode} onChangeText={set('pinCode')} keyboardType="numeric" />
+              <View style={styles.divider} />
+              {/* Search row */}
+              <View style={styles.formRow}>
+                <Text style={styles.rowIcon}>🔍</Text>
+                <Text style={[styles.rowLabel, { fontSize: 12 }]}>Risk / Occupancy Search</Text>
+                <View style={styles.searchWrap}>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search risk / occupancy"
+                    placeholderTextColor="#aaa"
+                    value={form.riskSearch}
+                    onChangeText={set('riskSearch')}
+                  />
+                  <TouchableOpacity style={styles.searchBtn} activeOpacity={0.8}>
+                    <Text style={styles.searchBtnIcon}>🔍</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </SectionCard>
+            {/* ── Coverage Details ── */}
+            <SectionCard>
+              <View style={styles.coverageHeaderRow}>
+                <Text style={styles.coverageHeaderIcon}>🏢</Text>
+                <Text style={styles.coverageHeaderText}>Coverage Details</Text>
+              </View>
+              {[
+                ['building', 'Building'],
+                ['stock', 'Stock'],
+                ['plantMachinery', 'Plant & Machinery'],
+                ['furnitureFixture', 'Furniture Fixture'],
+                ['otherContents', 'Other Contents'],
+              ].map(([key, label]) => (
+                <CoverageRow key={key} label={label} value={form[key]} onChangeText={set(key)} />
+              ))}
+            </SectionCard>
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {/* ── Add-ons & Discounts ── */}
+            <SectionCard>
+              <ToggleRow icon="🔥" label="Terrorism" value={form.terrorism} onChange={set('terrorism')} />
+              <View style={styles.divider} />
+              <ToggleRow icon="🏠" label="Burglary" value={form.burglary} onChange={set('burglary')} />
+              <View style={styles.divider} />
+              <View style={styles.formRow}>
+                <Text style={styles.rowIcon}>📋</Text>
+                <Text style={[styles.toggleLabel, { flex: 1 }]}>Discount on IIB</Text>
+                <Text style={styles.infoIcon}>ⓘ</Text>
+                <TextInput
+                  style={styles.discountInput}
+                  placeholder="Enter % or amount"
+                  placeholderTextColor="#aaa"
+                  value={form.discountIIB}
+                  onChangeText={set('discountIIB')}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.formRow}>
+                <Text style={styles.rowIcon}>📋</Text>
+                <Text style={[styles.toggleLabel, { flex: 1 }]}>Discount on NetCat</Text>
+                <Text style={styles.infoIcon}>ⓘ</Text>
+                <TextInput
+                  style={styles.discountInput}
+                  placeholder="Enter % or amount"
+                  placeholderTextColor="#aaa"
+                  value={form.discountNetCat}
+                  onChangeText={set('discountNetCat')}
+                  keyboardType="numeric"
+                />
+              </View>
+            </SectionCard>
 
-        {/* ── Enter Details Card ── */}
-        <SectionCard>
-          <SectionHeader label="Enter Details" />
-          <FormRow icon="👷" label="Customer Name" placeholder="Enter customer name"
-            value={form.customerName} onChangeText={set('customerName')} />
-          <View style={styles.divider} />
-          <FormRow icon="🏠" label="Address" placeholder="Enter address"
-            value={form.address} onChangeText={set('address')} />
-          <View style={styles.divider} />
-          <FormRow icon="📮" label="PIN Code" placeholder="Enter PIN code"
-            value={form.pinCode} onChangeText={set('pinCode')} keyboardType="numeric" />
-          <View style={styles.divider} />
-          {/* Search row */}
-          <View style={styles.formRow}>
-            <Text style={styles.rowIcon}>🔍</Text>
-            <Text style={[styles.rowLabel, { fontSize: 12 }]}>Risk / Occupancy Search</Text>
-            <View style={styles.searchWrap}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search risk / occupancy"
-                placeholderTextColor="#aaa"
-                value={form.riskSearch}
-                onChangeText={set('riskSearch')}
-              />
-              <TouchableOpacity style={styles.searchBtn} activeOpacity={0.8}>
-                <Text style={styles.searchBtnIcon}>🔍</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SectionCard>
-        {/* ── Coverage Details ── */}
-        <SectionCard>
-          <View style={styles.coverageHeaderRow}>
-            <Text style={styles.coverageHeaderIcon}>🏢</Text>
-            <Text style={styles.coverageHeaderText}>Coverage Details</Text>
-          </View>
-          {[
-            ['building', 'Building'],
-            ['stock', 'Stock'],
-            ['plantMachinery', 'Plant & Machinery'],
-            ['furnitureFixture', 'Furniture Fixture'],
-            ['otherContents', 'Other Contents'],
-          ].map(([key, label]) => (
-            <CoverageRow key={key} label={label} value={form[key]} onChangeText={set(key)} />
-          ))}
-        </SectionCard>
-
-        {/* ── Add-ons & Discounts ── */}
-        <SectionCard>
-          <ToggleRow icon="🔥" label="Terrorism" value={form.terrorism} onChange={set('terrorism')} />
-          <View style={styles.divider} />
-          <ToggleRow icon="🏠" label="Burglary" value={form.burglary} onChange={set('burglary')} />
-          <View style={styles.divider} />
-          <View style={styles.formRow}>
-            <Text style={styles.rowIcon}>📋</Text>
-            <Text style={[styles.toggleLabel, { flex: 1 }]}>Discount on IIB</Text>
-            <Text style={styles.infoIcon}>ⓘ</Text>
-            <TextInput
-              style={styles.discountInput}
-              placeholder="Enter % or amount"
-              placeholderTextColor="#aaa"
-              value={form.discountIIB}
-              onChangeText={set('discountIIB')}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.formRow}>
-            <Text style={styles.rowIcon}>📋</Text>
-            <Text style={[styles.toggleLabel, { flex: 1 }]}>Discount on NetCat</Text>
-            <Text style={styles.infoIcon}>ⓘ</Text>
-            <TextInput
-              style={styles.discountInput}
-              placeholder="Enter % or amount"
-              placeholderTextColor="#aaa"
-              value={form.discountNetCat}
-              onChangeText={set('discountNetCat')}
-              keyboardType="numeric"
-            />
-          </View>
-        </SectionCard>
-
-        {/* ── Calculate Button ── */}
-        <TouchableOpacity 
-          style={[styles.calcBtn, loading && styles.calcBtnDisabled]} 
-          onPress={handleCalculate} 
-          activeOpacity={0.85}
-          disabled={loading}
-        >
-          <Text style={styles.calcBtnText}>
-            {loading ? 'CALCULATING...' : 'CALCULATE PREMIUM'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* ── Results Section ── */}
-        {result && (
-          <SectionCard style={styles.resultCard}>
-            <SectionHeader label="PREMIUM BREAKDOWN" />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Total Sum Insured</Text>
-              <Text style={styles.resultValue}>₹ {result.totalSumInsured?.toLocaleString('en-IN') || '0'}</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Net Rate (IIB)</Text>
-              <Text style={styles.resultValue}>{result.net_rate_iib || '0'}%</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Net Rate (NatCat)</Text>
-              <Text style={styles.resultValue}>{result.net_cat_rate || '0'}%</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Final Rate</Text>
-              <Text style={styles.resultValue}>{result.final_rate || '0'}%</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Total Rate</Text>
-              <Text style={styles.resultValue}>{result.total_rate || '0'}%</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>Net Premium</Text>
-              <Text style={styles.resultValue}>₹ {result.net_premium?.toLocaleString('en-IN') || '0'}</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRow}>
-              <Text style={styles.resultLabel}>GST (18%)</Text>
-              <Text style={styles.resultValue}>₹ {result.gst?.toLocaleString('en-IN') || '0'}</Text>
-            </View>
-            <View style={styles.divider} />
-            
-            <View style={styles.resultRowHighlight}>
-              <Text style={styles.resultLabelHighlight}>Gross Premium</Text>
-              <Text style={styles.resultValueHighlight}>₹ {result.gross_premium?.toLocaleString('en-IN') || '0'}</Text>
-            </View>
-          </SectionCard>
-        )}
-
-        {/* ── OR divider ── */}
-        <View style={styles.orRow}>
-          <View style={styles.orLine} />
-          <View style={styles.orPill}><Text style={styles.orText}>OR</Text></View>
-          <View style={styles.orLine} />
-        </View>
-
-        {/* ── Generate Quote ── */}
-        <SectionCard style={styles.quoteCard}>
-          <SectionHeader label="GENERATE QUOTE" />
-          <View style={styles.quoteGrid}>
-            <TouchableOpacity style={styles.quoteBtn} onPress={handlePDF} activeOpacity={0.8}>
-              <Text style={styles.quoteBtnIcon}>📄</Text>
-              <Text style={styles.quoteBtnLabel}>PDF</Text>
-              <View style={styles.downloadBadge}><Text style={styles.downloadIcon}>⬇</Text></View>
+            {/* ── Calculate Button ── */}
+            <TouchableOpacity
+              style={[styles.calcBtn, loading && styles.calcBtnDisabled]}
+              onPress={handleCalculate}
+              activeOpacity={0.85}
+              disabled={loading}
+            >
+              <Text style={styles.calcBtnText}>
+                {loading ? 'CALCULATING...' : 'CALCULATE PREMIUM'}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.quoteBtn} onPress={handleExcel} activeOpacity={0.8}>
-              <Text style={styles.quoteBtnIcon}>📊</Text>
-              <Text style={styles.quoteBtnLabel}>EXCEL</Text>
-              <View style={styles.downloadBadge}><Text style={styles.downloadIcon}>⬇</Text></View>
-            </TouchableOpacity>
-          </View>
-        </SectionCard>
 
-        <View style={{ height: 32 }} />
-      </ScrollView>
+            {/* ── Results Section ── */}
+            {result && (
+              <SectionCard style={styles.resultCard}>
+                <SectionHeader label="PREMIUM BREAKDOWN" />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Total Sum Insured</Text>
+                  <Text style={styles.resultValue}>₹ {result.totalSumInsured?.toLocaleString('en-IN') || '0'}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Net Rate (IIB)</Text>
+                  <Text style={styles.resultValue}>{result.net_rate_iib || '0'}%</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Net Rate (NatCat)</Text>
+                  <Text style={styles.resultValue}>{result.net_cat_rate || '0'}%</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Final Rate</Text>
+                  <Text style={styles.resultValue}>{result.final_rate || '0'}%</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Total Rate</Text>
+                  <Text style={styles.resultValue}>{result.total_rate || '0'}%</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Net Premium</Text>
+                  <Text style={styles.resultValue}>₹ {result.net_premium?.toLocaleString('en-IN') || '0'}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>GST (18%)</Text>
+                  <Text style={styles.resultValue}>₹ {result.gst?.toLocaleString('en-IN') || '0'}</Text>
+                </View>
+                <View style={styles.divider} />
+
+                <View style={styles.resultRowHighlight}>
+                  <Text style={styles.resultLabelHighlight}>Gross Premium</Text>
+                  <Text style={styles.resultValueHighlight}>₹ {result.gross_premium?.toLocaleString('en-IN') || '0'}</Text>
+                </View>
+              </SectionCard>
+            )}
+
+            {/* ── OR divider ── */}
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <View style={styles.orPill}><Text style={styles.orText}>OR</Text></View>
+              <View style={styles.orLine} />
+            </View>
+
+            {/* ── Generate Quote ── */}
+            <SectionCard style={styles.quoteCard}>
+              <SectionHeader label="GENERATE QUOTE" />
+              <View style={styles.quoteGrid}>
+                <TouchableOpacity style={styles.quoteBtn} onPress={handlePDF} activeOpacity={0.8}>
+                  <Text style={styles.quoteBtnIcon}>📄</Text>
+                  <Text style={styles.quoteBtnLabel}>PDF</Text>
+                  <View style={styles.downloadBadge}><Text style={styles.downloadIcon}>⬇</Text></View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.quoteBtn} onPress={handleExcel} activeOpacity={0.8}>
+                  <Text style={styles.quoteBtnIcon}>📊</Text>
+                  <Text style={styles.quoteBtnLabel}>EXCEL</Text>
+                  <View style={styles.downloadBadge}><Text style={styles.downloadIcon}>⬇</Text></View>
+                </TouchableOpacity>
+              </View>
+            </SectionCard>
+
+            <View style={{ height: 32 }} />
+          </View>
+        </ScrollView>
+
+      </View>
     </AppBackground>
   );
 };
 
 /* ─── Styles ─────────────────────────────────────────────────── */
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 14, paddingBottom: 24 },
+  scroll: { paddingHorizontal: 14, paddingBottom: 80},
 
   // Header
   header: {
