@@ -26,7 +26,7 @@ export const formatFireInsurancePayload = (form) => {
       customerName: form.customerName || '',
       address: form.address || '',
       pinCode: form.pinCode || '',
-      riskCode: form.riskCode || '', // Default risk code
+      riskCode: form.riskSearch || '', // Default risk code
       occupancy: form.occupancy || '', // Default occupancy
     },
     riskCovers: {

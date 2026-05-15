@@ -163,23 +163,6 @@ const InsuranceCalculatorScreen = ({ navigation }) => {
             </View>
           </View>
         </SectionCard>
-
-        {/* ── Sum Insured ── */}
-        {/* <SectionCard style={styles.sumCard}>
-          <View style={styles.sumRow}>
-            <Text style={styles.rowIcon}>🔒</Text>
-            <Text style={styles.sumLabel}>Sum Insured (₹)</Text>
-            <TextInput
-              style={styles.sumInput}
-              placeholder="Enter sum insured"
-              placeholderTextColor="#aaa"
-              value={form.sumInsured}
-              onChangeText={set('sumInsured')}
-              keyboardType="numeric"
-            />
-          </View>
-        </SectionCard> */}
-
         {/* ── Coverage Details ── */}
         <SectionCard>
           <View style={styles.coverageHeaderRow}>
