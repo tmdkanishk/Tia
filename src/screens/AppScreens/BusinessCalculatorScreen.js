@@ -311,10 +311,10 @@ const BusinessCalculatorScreen = () => {
 
     return (
         <AppBackground>
-            <View style={{ flex: 1, gap: 12, }}>
+            <View style={{ gap: 12,}}>
                 <HeaderComponent heading={'BUSINESS'} />
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 12 }}>
-                    <View style={{ flex: 1, gap: 12 }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom:100, paddingHorizontal: 12 }}>
+                    <View style={{height:'100%', gap: 12 }}>
                         <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
                                 <Text style={{ fontSize: 14, color: '#fff' }}> Insured Details</Text>
@@ -622,7 +622,6 @@ const BusinessCalculatorScreen = () => {
                     </View>
                 </ScrollView>
             </View >
-
             <CustomAutoSearchModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={onSelectRiskCode} />
         </AppBackground >
     )
