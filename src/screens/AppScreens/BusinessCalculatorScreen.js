@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, Keyboard, } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AppBackground from '../../components/AppBackground'
 import GlassCard from '../../components/GlassCard'
@@ -48,6 +48,7 @@ const BusinessCalculatorScreen = () => {
         "riskCovers": {
             "terrorism": true,
             "burglary": true,
+            "fireAndAlliedPerils": false,
             "machineryBreakdown": false,
             "boilerPressurePlant": false,
             "electronicEquipment": false,
@@ -66,25 +67,23 @@ const BusinessCalculatorScreen = () => {
         },
 
         "sumInsured": {
-            "building": 0,
-            "plantAndMachinery": 0,
-            "stock": 0,
-            "furnitureFixturesFittings": 0,
-            "otherContents": 0,
-            "totalSumInsured": 0
+            "buildingSI": 0,
+            "plantAndMachinerySI": 0,
+            "stockSI": 0,
+            "furnitureFixturesFittingsSI": 0,
+            "otherContentsSI": 0,
+            "totalSI": 0
         },
 
         "sections": {
 
             "section1": {
                 "sectionName": "Fire & Allied Perils",
-
-                "building": 0,
-                "plantAndMachinery": 0,
-                "stock": 0,
-                "furnitureFixturesFittings": 0,
-                "otherContents": 0,
-
+                "buildingSI": 0,
+                "plantAndMachinerySI": 0,
+                "stockSI": 0,
+                "furnitureFixturesFittingsSI": 0,
+                "otherContentsSI": 0,
                 "earthquakeSI": 0,
                 "stfiSI": 0,
                 "terrorismSI": 0
@@ -92,81 +91,129 @@ const BusinessCalculatorScreen = () => {
 
             "section2": {
                 "sectionName": "Burglary & Housebreaking with theft & RSMD",
-
                 "totalBurglarySI": 0,
-
-                "plantAndMachinery": 0,
-                "stock": 0,
-                "furnitureFixturesFittings": 0,
-                "otherContents": 0
+                "plantAndMachinerySI": 0,
+                "stockSI": 0,
+                "furnitureFixturesFittingsSI": 0,
+                "otherContentsSI": 0
             },
 
             "section3A": {
                 "sectionName": "Machinery Breakdown",
-                "machinerySumInsured": 0,
-                "remarks": ""
+                "machineryBreakdownSI": 0,
+                "remarks": "Machinery details to be provided before policy binding and subject to underwriting approval"
             },
 
             "section3B": {
                 "sectionName": "Boiler Pressure Plant",
-
-                "bppValue": 0,
-                "ownersSurroundingProperty": 0,
-                "thirdPartyLiability": 0
+                "boilerPressurePlantSI": 0,
+                "ownersSurroundingPropertySI": 0,
+                "thirdPartyLiabilitySI": 0
             },
 
             "section4": {
                 "sectionName": "Electronic Equipment",
-                "equipmentSumInsured": 0
+                "electronicEquipmentSI": 0
             },
 
             "section5": {
                 "sectionName": "Portable Computer/Mobile Phone/Laptop etc",
-                "portableEquipmentSumInsured": 0
+                "portableEquipmentSI": 0
             },
 
             "section6": {
                 "sectionName": "Money",
-                "moneyInTransit": 0,
-                "moneyInCounter": 0,
-                "moneyInSafe": 0
+                "moneyInTransitSI": 0,
+                "moneyInCounterSI": 0,
+                "moneyInSafeSI": 0
             },
 
             "section7": {
                 "sectionName": "Fidelity Guarantee",
-
                 "numberOfEmployees": 0,
-                "perEmployeeSumInsured": 0
+                "perEmployeeSI": 0
             },
 
             "section8": {
                 "sectionName": "Personal Accident",
-
-                "tableA_DeathBenefitOnly": 0,
-                "tableB_DeathPlusPTD": 0,
-                "tableC_DeathPTDPPD": 0,
-                "tableD_DeathPTDPPDTTD": 0,
-                "totalEmployees": 0,
+                "tableA_DeathBenefitOnlySI": 0,
+                "tableB_DeathPlusPTDSI": 0,
+                "tableC_DeathPTDPPDSI": 0,
+                "tableD_DeathPTDPPDTTDSI": 0,
+                "totalEmployees": 0
             },
 
             "section9": {
                 "sectionName": "Business Interruption",
-
-                "grossProfitSumInsured": 0,
-                "indemnityPeriodMonths": 0
+                "businessInterruptionSI": 0,
+                "businessInterruptionTerrorismSI": 0
             },
 
             "section10": {
                 "sectionName": "Public Liability - Liability Insurance (AOA:AOY::1:1)",
-                "liabilitySumInsured": 0
+                "publicLiabilitySI": 0
             },
 
             "section11": {
                 "sectionName": "Plate Glass Insurance",
-                "plateGlassSumInsured": 0
+                "plateGlassSI": 0
             }
         }
     });
+
+    // const getUpdatedRiskCovers = (data) => {
+    //     const sections = data.sections;
+
+    //     return {
+    //         ...data,
+
+    //         riskCovers: {
+    //             ...data.riskCovers,
+
+    //             machineryBreakdown:
+    //                 sections.section3A.machinerySumInsured > 0,
+
+    //             boilerPressurePlant:
+    //                 sections.section3B.bppValue > 0 ||
+    //                 sections.section3B.ownersSurroundingProperty > 0 ||
+    //                 sections.section3B.thirdPartyLiability > 0,
+
+    //             electronicEquipment:
+    //                 sections.section4.equipmentSumInsured > 0,
+
+    //             portableEquipment:
+    //                 sections.section5.portableEquipmentSumInsured > 0,
+
+    //             moneyInsurance:
+    //                 sections.section6.moneyInTransit > 0 ||
+    //                 sections.section6.moneyInCounter > 0 ||
+    //                 sections.section6.moneyInSafe > 0,
+
+    //             fidelityGuarantee:
+    //                 sections.section7.numberOfEmployees > 0 ||
+    //                 sections.section7.perEmployeeSumInsured > 0,
+
+    //             personalAccident:
+    //                 sections.section8.tableA_DeathBenefitOnly > 0 ||
+    //                 sections.section8.tableB_DeathPlusPTD > 0 ||
+    //                 sections.section8.tableC_DeathPTDPPD > 0 ||
+    //                 sections.section8.tableD_DeathPTDPPDTTD > 0 ||
+    //                 sections.section8.totalEmployees > 0,
+
+    //             businessInterruption:
+    //                 sections.section9.grossProfitSumInsured > 0 ||
+    //                 sections.section9.indemnityPeriodMonths > 0,
+
+    //             publicLiability:
+    //                 sections.section10.liabilitySumInsured > 0,
+
+    //             plateGlass:
+    //                 sections.section11.plateGlassSumInsured > 0,
+    //         }
+    //     };
+    // };
+
+
 
     const getUpdatedRiskCovers = (data) => {
         const sections = data.sections;
@@ -177,45 +224,55 @@ const BusinessCalculatorScreen = () => {
             riskCovers: {
                 ...data.riskCovers,
 
+                fireAndAlliedPerils:
+                    sections.section1.buildingSI > 0 ||
+                    sections.section1.plantAndMachinerySI > 0 ||
+                    sections.section1.stockSI > 0 ||
+                    sections.section1.furnitureFixturesFittingsSI > 0 ||
+                    sections.section1.otherContentsSI > 0 ||
+                    sections.section1.earthquakeSI > 0 ||
+                    sections.section1.stfiSI > 0 ||
+                    sections.section1.terrorismSI > 0,
+
                 machineryBreakdown:
-                    sections.section3A.machinerySumInsured > 0,
+                    sections.section3A.machineryBreakdownSI > 0,
 
                 boilerPressurePlant:
-                    sections.section3B.bppValue > 0 ||
-                    sections.section3B.ownersSurroundingProperty > 0 ||
-                    sections.section3B.thirdPartyLiability > 0,
+                    sections.section3B.boilerPressurePlantSI > 0 ||
+                    sections.section3B.ownersSurroundingPropertySI > 0 ||
+                    sections.section3B.thirdPartyLiabilitySI > 0,
 
                 electronicEquipment:
-                    sections.section4.equipmentSumInsured > 0,
+                    sections.section4.electronicEquipmentSI > 0,
 
                 portableEquipment:
-                    sections.section5.portableEquipmentSumInsured > 0,
+                    sections.section5.portableEquipmentSI > 0,
 
                 moneyInsurance:
-                    sections.section6.moneyInTransit > 0 ||
-                    sections.section6.moneyInCounter > 0 ||
-                    sections.section6.moneyInSafe > 0,
+                    sections.section6.moneyInTransitSI > 0 ||
+                    sections.section6.moneyInCounterSI > 0 ||
+                    sections.section6.moneyInSafeSI > 0,
 
                 fidelityGuarantee:
                     sections.section7.numberOfEmployees > 0 ||
-                    sections.section7.perEmployeeSumInsured > 0,
+                    sections.section7.perEmployeeSI > 0,
 
                 personalAccident:
-                    sections.section8.tableA_DeathBenefitOnly > 0 ||
-                    sections.section8.tableB_DeathPlusPTD > 0 ||
-                    sections.section8.tableC_DeathPTDPPD > 0 ||
-                    sections.section8.tableD_DeathPTDPPDTTD > 0 ||
+                    sections.section8.tableA_DeathBenefitOnlySI > 0 ||
+                    sections.section8.tableB_DeathPlusPTDSI > 0 ||
+                    sections.section8.tableC_DeathPTDPPDSI > 0 ||
+                    sections.section8.tableD_DeathPTDPPDTTDSI > 0 ||
                     sections.section8.totalEmployees > 0,
 
                 businessInterruption:
-                    sections.section9.grossProfitSumInsured > 0 ||
-                    sections.section9.indemnityPeriodMonths > 0,
+                    sections.section9.businessInterruptionSI > 0 ||
+                    sections.section9.businessInterruptionTerrorismSI > 0,
 
                 publicLiability:
-                    sections.section10.liabilitySumInsured > 0,
+                    sections.section10.publicLiabilitySI > 0,
 
                 plateGlass:
-                    sections.section11.plateGlassSumInsured > 0,
+                    sections.section11.plateGlassSI > 0,
             }
         };
     };
@@ -271,22 +328,22 @@ const BusinessCalculatorScreen = () => {
 
     const onHandleSubmitInput = () => {
         let totalSumInsured =
-            Number(form.sumInsured.building || 0) +
-            Number(form.sumInsured.plantAndMachinery || 0) +
-            Number(form.sumInsured.stock || 0) +
-            Number(form.sumInsured.furnitureFixturesFittings || 0) +
-            Number(form.sumInsured.otherContents || 0);
+            Number(form.sumInsured.buildingSI || 0) +
+            Number(form.sumInsured.plantAndMachinerySI || 0) +
+            Number(form.sumInsured.stockSI || 0) +
+            Number(form.sumInsured.furnitureFixturesFittingsSI || 0) +
+            Number(form.sumInsured.otherContentsSI || 0);
 
         console.log("totalSumInsured", totalSumInsured);
 
-        handleChange("sumInsured", "totalSumInsured", totalSumInsured.toString());
+        handleChange("sumInsured", "totalSI", totalSumInsured.toString());
 
         // section1
-        handleSectionChange("section1", "building", form.sumInsured.building);
-        handleSectionChange("section1", "plantAndMachinery", form.sumInsured.plantAndMachinery);
-        handleSectionChange("section1", "stock", form.sumInsured.stock);
-        handleSectionChange("section1", "furnitureFixturesFittings", form.sumInsured.furnitureFixturesFittings);
-        handleSectionChange("section1", "otherContents", form.sumInsured.otherContents);
+        handleSectionChange("section1", "buildingSI", form.sumInsured.buildingSI);
+        handleSectionChange("section1", "plantAndMachinerySI", form.sumInsured.plantAndMachinerySI);
+        handleSectionChange("section1", "stockSI", form.sumInsured.stockSI);
+        handleSectionChange("section1", "furnitureFixturesFittingsSI", form.sumInsured.furnitureFixturesFittingsSI);
+        handleSectionChange("section1", "otherContentsSI", form.sumInsured.otherContentsSI);
         handleSectionChange("section1", "earthquakeSI", totalSumInsured.toString());
         handleSectionChange("section1", "stfiSI", totalSumInsured.toString());
         handleSectionChange("section1", "terrorismSI", totalSumInsured.toString());
@@ -294,27 +351,27 @@ const BusinessCalculatorScreen = () => {
 
         // section2
         let totalBurglarySI =
-            Number(form.sumInsured.plantAndMachinery || 0) +
-            Number(form.sumInsured.stock || 0) +
-            Number(form.sumInsured.furnitureFixturesFittings || 0) +
-            Number(form.sumInsured.otherContents || 0);
+            Number(form.sumInsured.plantAndMachinerySI || 0) +
+            Number(form.sumInsured.stockSI || 0) +
+            Number(form.sumInsured.furnitureFixturesFittingsSI || 0) +
+            Number(form.sumInsured.otherContentsSI || 0);
 
         handleSectionChange("section2", "totalBurglarySI", totalBurglarySI.toString());
 
-        handleSectionChange("section2", "plantAndMachinery", form.sumInsured.plantAndMachinery);
-        handleSectionChange("section2", "stock", form.sumInsured.stock);
-        handleSectionChange("section2", "furnitureFixturesFittings", form.sumInsured.furnitureFixturesFittings)
-        handleSectionChange("section2", "otherContents", form.sumInsured.otherContents)
+        handleSectionChange("section2", "plantAndMachinerySI", form.sumInsured.plantAndMachinerySI);
+        handleSectionChange("section2", "stockSI", form.sumInsured.stockSI);
+        handleSectionChange("section2", "furnitureFixturesFittingsSI", form.sumInsured.furnitureFixturesFittingsSI)
+        handleSectionChange("section2", "otherContentsSI", form.sumInsured.otherContentsSI)
 
     }
 
 
     return (
         <AppBackground>
-            <View style={{ gap: 12,}}>
+            <View style={{ height: '100%' }}>
                 <HeaderComponent heading={'BUSINESS'} />
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom:100, paddingHorizontal: 12 }}>
-                    <View style={{height:'100%', gap: 12 }}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 12 }}>
+                    <View style={{ gap: 12 }}>
                         <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
                                 <Text style={{ fontSize: 14, color: '#fff' }}> Insured Details</Text>
@@ -374,12 +431,12 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.building} onChangeText={(text) => handleChange("sumInsured", "building", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.plantAndMachinery} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinery", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.stock} onChangeText={(text) => handleChange("sumInsured", "stock", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.furnitureFixturesFittings} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittings", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.otherContents} onChangeText={(text) => handleChange("sumInsured", "otherContents", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sumInsured?.totalSumInsured} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sumInsured.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -392,11 +449,11 @@ const BusinessCalculatorScreen = () => {
                                 }
                             </TouchableOpacity>
                             <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section1.building} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section1.plantAndMachinery} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section1.stock} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section1.furnitureFixturesFittings} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section1.otherContents} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
                                 <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
                                 <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
                                 {terrorism && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
@@ -414,13 +471,12 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
                             <View style={{ display: expanded.burglaryHousebreaking ? 'flex' : 'none', marginTop: 10 }}>
                                 <InputField value={form.sections.section2.totalBurglarySI} editable={false} placeholder='0' label={'Burglary & Housebreaking with theft & RSMD'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section2.plantAndMachinery} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section2.stock} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section2.furnitureFixturesFittings} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section2.otherContents} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section2.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section2.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section2.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section2.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
-
 
                         <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, machineryBreakdown: !prev.machineryBreakdown }))}>
@@ -431,7 +487,7 @@ const BusinessCalculatorScreen = () => {
                                 }
                             </TouchableOpacity>
                             <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section3A.machinerySumInsured} onChangeText={(text) => handleSectionChange("section3A", "machinerySumInsured", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                 <InputField value={form.sections.section3A.remarks} onChangeText={(text) => handleSectionChange("section3A", "remarks", text)} placeholder='eg. Remarks' label={'Remarks'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
@@ -448,13 +504,11 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.boilerPressure ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section3B.bppValue} onChangeText={(text) => handleSectionChange("section3B", "bppValue", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section3B.ownersSurroundingProperty} onChangeText={(text) => handleSectionChange("section3B", "ownersSurroundingProperty", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section3B.thirdPartyLiability} onChangeText={(text) => handleSectionChange("section3B", "thirdPartyLiability", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section3B.boilerPressurePlantSI} onChangeText={(text) => handleSectionChange("section3B", "boilerPressurePlantSI", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section3B.ownersSurroundingPropertySI} onChangeText={(text) => handleSectionChange("section3B", "ownersSurroundingPropertySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section3B.thirdPartyLiabilitySI} onChangeText={(text) => handleSectionChange("section3B", "thirdPartyLiabilitySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
-
-
 
                         <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, electronicEquipment: !prev.electronicEquipment }))}>
@@ -466,7 +520,7 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.electronicEquipment ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section4.equipmentSumInsured} onChangeText={(text) => handleSectionChange("section4", "equipmentSumInsured", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section4.electronicEquipmentSI} onChangeText={(text) => handleSectionChange("section4", "electronicEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
 
                         </GlassCard>
@@ -483,7 +537,7 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.portable ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section5.portableEquipmentSumInsured} onChangeText={(text) => handleSectionChange("section5", "portableEquipmentSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section5.portableEquipmentSI} onChangeText={(text) => handleSectionChange("section5", "portableEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -499,9 +553,9 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.money ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section6.moneyInTransit} onChangeText={(text) => handleSectionChange("section6", "moneyInTransit", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section6.moneyInCounter} onChangeText={(text) => handleSectionChange("section6", "moneyInCounter", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section6.moneyInSafe} onChangeText={(text) => handleSectionChange("section6", "moneyInSafe", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section6.moneyInTransitSI} onChangeText={(text) => handleSectionChange("section6", "moneyInTransitSI", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section6.moneyInCounterSI} onChangeText={(text) => handleSectionChange("section6", "moneyInCounterSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section6.moneyInSafeSI} onChangeText={(text) => handleSectionChange("section6", "moneyInSafeSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -518,7 +572,7 @@ const BusinessCalculatorScreen = () => {
 
                             <View style={{ display: expanded.fidelityGuarantee ? 'flex' : 'none', marginTop: 10 }}>
                                 <InputField value={form.sections.section7.numberOfEmployees} onChangeText={(text) => { "section7", "numberOfEmployees", text }} keyboardType='numeric' placeholder='0' label={'No of Employees'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section7.perEmployeeSumInsured} onChangeText={(text) => { "section7", "perEmployeeSumInsured", text }} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section7.perEmployeeSI} onChangeText={(text) => { "section7", "perEmployeeSI", text }} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -534,10 +588,10 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.personalAccident ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section8.tableA_DeathBenefitOnly} onChangeText={(text) => handleSectionChange("section8", "tableA_DeathBenefitOnly", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section8.tableB_DeathPlusPTD} onChangeText={(text) => handleSectionChange("section8", "tableB_DeathPlusPTD", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section8.tableC_DeathPTDPPD} onChangeText={(text) => handleSectionChange("section8", "tableC_DeathPTDPPD", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section8.tableD_DeathPTDPPDTTD} onChangeText={(text) => handleSectionChange("section8", "tableD_DeathPTDPPDTTD", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section8.tableA_DeathBenefitOnlySI} onChangeText={(text) => handleSectionChange("section8", "tableA_DeathBenefitOnlySI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section8.tableB_DeathPlusPTDSI} onChangeText={(text) => handleSectionChange("section8", "tableB_DeathPlusPTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section8.tableC_DeathPTDPPDSI} onChangeText={(text) => handleSectionChange("section8", "tableC_DeathPTDPPDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section8.tableD_DeathPTDPPDTTDSI} onChangeText={(text) => handleSectionChange("section8", "tableD_DeathPTDPPDTTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
                                 <InputField value={form.sections.section8.totalEmployees} onChangeText={(text) => handleSectionChange("section8", "totalEmployees", text)} keyboardType='numeric' placeholder='0' label={'Total Employee'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
@@ -553,8 +607,8 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section9.grossProfitSumInsured} onChangeText={(text) => handleSectionChange("section9", "grossProfitSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                <InputField value={form.sections.section9.indemnityPeriodMonths} onChangeText={(text) => handleSectionChange("section9", "indemnityPeriodMonths", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section9.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section9", "grossProfitSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section9.businessInterruptionTerrorismSI} onChangeText={(text) => handleSectionChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -570,10 +624,9 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.publicLiability ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section10.liabilitySumInsured} onChangeText={(text) => handleSectionChange("section10", "liabilitySumInsured", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section10.publicLiabilitySI} onChangeText={(text) => handleSectionChange("section10", "publicLiabilitySI", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
-
 
 
                         <GlassCard innerStyle={{ padding: 16 }}>
@@ -586,7 +639,7 @@ const BusinessCalculatorScreen = () => {
                             </TouchableOpacity>
 
                             <View style={{ display: expanded.plateGlassInsurance ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField value={form.sections.section11.plateGlassSumInsured} onChangeText={(text) => handleSectionChange("section11", "plateGlassSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField value={form.sections.section11.plateGlassSI} onChangeText={(text) => handleSectionChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                             </View>
                         </GlassCard>
 
@@ -621,9 +674,10 @@ const BusinessCalculatorScreen = () => {
 
                     </View>
                 </ScrollView>
-            </View >
-            <CustomAutoSearchModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={onSelectRiskCode} />
+                <CustomAutoSearchModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={onSelectRiskCode} />
+            </View>
         </AppBackground >
+
     )
 }
 
@@ -641,8 +695,4 @@ const styles = StyleSheet.create({
         backgroundColor: '#D0A060', opacity: 0.7,
     },
     calcBtnText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 1.5 },
-
-
-
-
 })

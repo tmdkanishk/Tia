@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import { StyleSheet,  Platform, StatusBar, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 const AppBackground = ({ children, colors }) => {
@@ -9,21 +9,25 @@ const AppBackground = ({ children, colors }) => {
 
     <LinearGradient colors={gradientColors} style={styles.gradient}>
       <StatusBar barStyle="light-content" />
-      <KeyboardAvoidingView
+      {/* <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         // behavior='position'
         style={styles.flex}
-      >
-        {children}
-      </KeyboardAvoidingView>
+      > */}
+       
+          {children}
+      
+      {/* </KeyboardAvoidingView> */}
     </LinearGradient>
 
   );
 };
 
 const styles = StyleSheet.create({
-  flex: { height: '100%'},
-  gradient: { height: '100%'},
+  flex: { height: '100%' },
+  gradient: { height: '100%' },
+
+  
 });
 
 export default AppBackground;
