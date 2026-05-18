@@ -1,158 +1,97 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { memo, useState } from 'react'
-import GlassCard from '../../components/GlassCard'
+import { View, Text, Dimensions, Pressable } from 'react-native'
+import React, { memo } from 'react'
+import HeaderComponent from '../MainComponents/HeaderComponent';
+import { color } from '../../utility/color';
+import { IconComponent, icons } from '../../components/IconComponent';
 import { useNavigation } from '@react-navigation/native';
 
+
 const HomeComponent = () => {
+  const { width, height } = Dimensions.get('window');
   const navigation = useNavigation();
-  const [selected, setSelected] = useState(null);
-
-  const CATEGORIES = [
-    { id: 'InsuranceCalculator', label: 'Fire', icon: '🔥', bg: '#C62828', border: '#E53935' },
-    { id: 'home', label: 'Home', icon: '🏠', bg: 'rgba(255,255,255,0.2)', border: 'rgba(255,255,255,0.5)' },
-    { id: 'IARCalculator', label: 'Shop', icon: '🏪', bg: 'rgba(255,235,205,0.55)', border: 'rgba(255,200,150,0.6)' },
-    { id: 'BusinessCalculator', label: 'Business', icon: '🏢', bg: '#1565C0', border: '#42A5F5' },
-  ];
-
-  const handleSelect = (id) => {
-    if (selected === id) {
-      // If already selected, navigate to calculator with the category
-      navigation.navigate(id);
-    } else {
-      setSelected(id);
-    }
-  };
-
-  const welcomeMsg = selected
-    ? `You selected ${CATEGORIES.find(c => c.id === selected)?.label} Insurance. Tap again to continue.`
-    : 'Welcome! Please select a category to proceed.';
 
   return (
-    <View style={{ padding: 12, marginTop: 30 }}>
-      <View style={styles.logoArea}>
-        <View style={styles.logoPlaceholder}>
-          <Text style={styles.logoIconText}>🛡️</Text>
-        </View>
-        <Text style={styles.logoTitle}>Tia</Text>
-        <Text style={styles.logoSub}>One App. All Insurance. Zero Hassle.</Text>
+    <View style={{ paddingHorizontal: 12, paddingVertical: 40, paddingTop: 50, gap: 10 }}>
+      <HeaderComponent />
+
+      <View style={{ borderBottomWidth: 1, paddingBottom: 20, borderColor: color.borderColor }}>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Good Morning, Rahul</Text>
+        <Text style={{ fontSize: 14, color: color.secondaryText }}>Select a calculator to get started</Text>
       </View>
 
-      {/* Category Card */}
-      <GlassCard style={styles.categoryCard}>
+      <View>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Choose a Calculator</Text>
+        <Text style={{ fontSize: 14, color: color.secondaryText }}> Select the calculator that matches your insurance requirement.</Text>
+      </View>
 
-        {/* Header pill */}
-        <View style={styles.categoryHeader}>
-          <View style={styles.headerLine} />
-          <View style={styles.headerPill}>
-            <Text style={styles.headerPillText}>SELECT CATEGORY</Text>
+      {/* Fire Calculator */}
+      <Pressable onPress={() => navigation.navigate('FireCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: '#fc4f05', flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: '#fff5f2', alignItems: 'center', justifyContent: 'center' }}>
+          <IconComponent icon={icons.fire} size={46} tintColor={'#fc4f05'} />
+        </View>
+
+        <View style={{ width: width * 0.6, gap: 10 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Fire Calculator</Text>
+          <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Fire Insurance policies.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <IconComponent icon={icons.docs} size={16} tintColor={'#fc4f05'} />
+            <Text style={{ fontSize: 14, color: color.secondaryText }}>120 Quotes Generated</Text>
           </View>
-          <View style={styles.headerLine} />
         </View>
 
-        {/* Arrow + subtitle */}
-        <View style={styles.arrowRow}>
-          <Text style={styles.arrowIcon}>⬇</Text>
-        </View>
-        <Text style={styles.subText}>Select a category below to get started</Text>
+        <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />
 
-        {/* 2x2 Grid */}
-        <View style={styles.grid}>
-          {CATEGORIES.map(cat => (
-            <TouchableOpacity
-              key={cat.id}
-              style={[
-                styles.catBtn,
-                { backgroundColor: cat.bg, borderColor: cat.border },
-                selected === cat.id && styles.catBtnSelected,
-              ]}
-              onPress={() => handleSelect(cat.id)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.catIcon}>{cat.icon}</Text>
-              <Text style={[
-                styles.catLabel,
-                { color: cat.id === 'home' || cat.id === 'shop' ? '#1A237E' : '#fff' },
-              ]}>
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </GlassCard>
+      </Pressable>
 
-      {/* Welcome Banner */}
-      <TouchableOpacity onPress={() => { navigation.navigate(selected) }} style={styles.banner}>
-        <Text style={styles.bannerText}>{welcomeMsg}</Text>
-      </TouchableOpacity>
+
+      {/* Business Calculator */}
+      <Pressable onPress={() => navigation.navigate('BusinessCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.primaryBlue, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
+          <IconComponent icon={icons.businessins} size={46} tintColor={color.primaryBlue} />
+        </View>
+
+        <View style={{ width: width * 0.6, gap: 10 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Business Calculator</Text>
+          <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Business Insurance policies.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <IconComponent icon={icons.docs} size={16} tintColor={color.primaryBlue} />
+            <Text style={{ fontSize: 14, color: color.secondaryText }}>248 Quotes Generated</Text>
+          </View>
+        </View>
+
+        <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />
+
+      </Pressable>
+
+      {/* IAR Calculator */}
+      <Pressable onPress={() => navigation.navigate('IARCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.mainText, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
+          <IconComponent icon={icons.industry} size={46} tintColor={color.mainText} />
+        </View>
+
+        <View style={{ width: width * 0.6, gap: 10 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>IAR Calculator</Text>
+          <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Industrial All Risk policies.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <IconComponent icon={icons.docs} size={16} tintColor={color.mainText} />
+            <Text style={{ fontSize: 14, color: color.secondaryText }}>98 Quotes Generated</Text>
+          </View>
+        </View>
+
+        <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />
+
+      </Pressable>
+
+      <View style={{ padding: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: color.lightBlueBackground, gap: 16 }}>
+        <View style={{ backgroundColor: color.lightBlueBackground, width: width * 0.150, height: width * 0.150, borderRadius: width * 0.75, borderWidth: 1, elevation: 2, borderColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
+          <IconComponent icon={icons.verified} size={42} tintColor={color.primaryBlueDark} />
+        </View>
+        <View style={{ width: width * 0.7 }}>
+          <Text style={{ fontSize: 13, color: color.mainText }} >All calculations are indicative and subject to underwriting and policy terms.</Text>
+        </View>
+      </View>
     </View>
   )
 }
 
 export default memo(HomeComponent);
-
-
-const styles = StyleSheet.create({
-  // Logo
-  logoArea: { alignItems: 'center', paddingTop: 40, marginBottom: 20 },
-  logoPlaceholder: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
-  },
-  logoIconText: { fontSize: 36 },
-  logoTitle: {
-    fontSize: 34, fontWeight: '800', color: '#fff', letterSpacing: 2,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6,
-  },
-  logoSub: { fontSize: 11, color: 'rgba(255,255,255,0.85)', marginTop: 2, letterSpacing: 0.4 },
-
-  // Card override
-  categoryCard: { marginBottom: 16 },
-
-  // Header
-  categoryHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  headerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.4)' },
-  headerPill: {
-    backgroundColor: '#1565C0',
-    borderRadius: 20, paddingHorizontal: 18, paddingVertical: 8,
-    marginHorizontal: 10,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3, shadowRadius: 6, elevation: 6,
-  },
-  headerPillText: { color: '#fff', fontWeight: '800', fontSize: 13, letterSpacing: 1.5 },
-
-  arrowRow: { alignItems: 'center', marginBottom: 4 },
-  arrowIcon: { fontSize: 18, color: '#42A5F5' },
-  subText: { textAlign: 'center', color: 'rgba(255,255,255,0.75)', fontSize: 12, marginBottom: 16 },
-
-  // Grid
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  catBtn: {
-    width: '47.5%', flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 18, paddingHorizontal: 14,
-    borderRadius: 14, borderWidth: 1.5,
-    // shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
-    // shadowOpacity: 0.25, shadowRadius: 6, elevation: 5,
-  },
-  catBtnSelected: {
-    borderColor: '#FFD700', borderWidth: 2.5,
-    shadowColor: '#FFD700', shadowOpacity: 0.5,
-  },
-  catIcon: { fontSize: 26, marginRight: 10 },
-  catLabel: { fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
-
-  // Banner
-  banner: {
-    backgroundColor: '#1565C0',
-    borderRadius: 16, padding: 18,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
-    marginBottom: 8,
-  },
-  bannerText: { color: '#fff', textAlign: 'center', fontSize: 14, fontWeight: '600', lineHeight: 22 },
-
-
-})

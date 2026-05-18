@@ -6,7 +6,7 @@ import PolicyRecordsScreen from "../screens/CommonScreens/PolicyRecordsScreen";
 import MainLayout from '../screens/Layout/MainLayout';
 import BusinessCalculatorScreen from '../screens/AppScreens/BusinessCalculatorScreen';
 import IARCalculatorScreen from '../screens/AppScreens/IARCalculatorScreen';
-
+import FireCalculatorScreen from '../screens/AppScreens/FireCalculatorScreen'
 
 const Stack = createNativeStackNavigator();
 
@@ -14,8 +14,8 @@ const MainStack = () => {
     return (
         <>
             <StatusBar backgroundColor={'#0D47A1'} barStyle={'light-content'} />
-            <Stack.Navigator 
-                screenOptions={{ headerShown: false }} 
+            <Stack.Navigator
+                screenOptions={{ headerShown: false }}
                 initialRouteName='MainLayout'
             >
                 <Stack.Screen name="MainLayout" component={MainLayout} />
@@ -23,8 +23,10 @@ const MainStack = () => {
                 <Stack.Screen name="Policies" component={PolicyRecordsScreen} />
                 <Stack.Screen name="BusinessCalculator" component={BusinessCalculatorScreen} />
                 <Stack.Screen name="IARCalculator" component={IARCalculatorScreen} />
-              
-                
+                <Stack.Screen name="FireCalculator" component={FireCalculatorScreen} />
+
+
+
             </Stack.Navigator>
         </>
     )

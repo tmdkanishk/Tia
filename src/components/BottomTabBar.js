@@ -1,6 +1,7 @@
 // src/components/BottomTabBar.js
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { color } from '../utility/color';
 
 const TABS = [
   { id: 'Home', icon: '🏠', screen: 'home' },
@@ -36,7 +37,7 @@ const BottomTabBar = ({ onButtonClick, active }) => (
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(220,235,255,0.97)',
+    backgroundColor: color.cardBackground,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     paddingVertical: 10,

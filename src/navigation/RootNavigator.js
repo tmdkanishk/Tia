@@ -11,6 +11,8 @@ const RootContent = () => {
   // Get authentication state from Redux store
   const { isAuthenticated, isVerified } = useSelector((state) => state.auth);
 
+  console.log("isAuthenticated", isAuthenticated, isVerified);
+
   return (
     <NavigationContainer>
       {/* Show MainStack only when user is authenticated AND verified */}
