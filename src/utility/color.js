@@ -22,5 +22,6 @@ export const color = {
     warningRemarkBackground: "#FFF7E6",
     warningBorder: "#F5D68A",
     dark: '#000000',
-    icon: '#111827'
+    icon: '#111827',
+    error:'#f80000'
 };

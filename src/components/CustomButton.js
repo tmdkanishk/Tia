@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { memo } from 'react'
 import { color } from '../utility/color'
 
@@ -8,11 +8,15 @@ const CustomButton = ({
     backgroundColor = color.primaryBlueDark,
     textColor = color.lightText,
     label = 'Continue',
-    onPress
+    onPress,
+    disabled = false,
+    loading = false
+
 }) => {
     return (
-        <TouchableOpacity onPress={onPress} style={{ backgroundColor: backgroundColor, width: width, padding: 14, borderRadius: 10, alignItems: 'center' }}>
-            <Text style={{ color: textColor, fontSize: 16 }}>{label}</Text>
+        <TouchableOpacity disabled={disabled} onPress={onPress} style={{ backgroundColor: backgroundColor, width: width, padding: 14, borderRadius: 10, alignItems: 'center', opacity: disabled ? 0.5 : 1 }}>
+            {loading ? <ActivityIndicator size={'small'} color={color.lightText} />
+                : <Text style={{ color: textColor, fontSize: 16 }}>{label}</Text>}
         </TouchableOpacity>
     )
 }
