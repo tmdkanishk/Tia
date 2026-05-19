@@ -18,6 +18,8 @@ const InputField = ({ icon, placeholder, label, secureTextEntry, iconStyle, cont
           placeholderTextColor="#999"
           secureTextEntry={hidden}
           {...props}
+        
+         
           
           
         />

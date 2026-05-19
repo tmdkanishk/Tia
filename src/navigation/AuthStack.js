@@ -3,32 +3,31 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/AuthScreens/LoginScreen';
 import RegisterScreen from '../screens/AuthScreens/RegisterScreen';
-import EmailVerificationScreen from '../screens/AuthScreens/EmailVerificationScreen';
+import VerificationScreen from '../screens/AuthScreens/VerificationScreen';
 import RoleSelectionScreen from '../screens/AuthScreens/RoleSelectionScreen';
-import ForgotScreen from '../screens/AuthScreens/ForgotScreen';
 import ResetPasswordScreen from '../screens/AuthScreens/ResetPasswordScreen';
-import { useSelector } from 'react-redux';
+import VerifiedAccountSuccess from '../screens/AuthScreens/VerifiedAccountSuccess';
+import ForgotPasswordScreen from '../screens/AuthScreens/ForgotPasswordScreen';
 
 
 const Stack = createNativeStackNavigator();
 
 const AuthStack = () => {
-    const { role } = useSelector((state) => state.auth);
-
     return (
         <>
             <StatusBar barStyle="dark-content" />
             <Stack.Navigator
                 screenOptions={{ headerShown: false }}
-                // initialRouteName={'RoleSelection'}
-                 initialRouteName={role==null?'EmailVerification':'Register'}
+                initialRouteName={'RoleSelection'}
             >
                 <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
-                <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
-                <Stack.Screen name="Forgot" component={ForgotScreen} />
+                <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                 <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                <Stack.Screen name="VerifiedAccountSuccess" component={VerifiedAccountSuccess} />
+                
 
             </Stack.Navigator>
         </>

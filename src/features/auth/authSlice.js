@@ -6,6 +6,7 @@ const initialState = {
     accessToken: null,
     isAuthenticated: false,
     isVerified: false,
+    user: null
 }
 
 const authSlice = createSlice({
@@ -17,12 +18,13 @@ const authSlice = createSlice({
         },
 
         setCredentials: (state, action) => {
-            const { accessToken, refreshToken, role, isAuthenticated, isVerified } = action.payload;
+            const { accessToken, refreshToken, role, isAuthenticated, isVerified, user } = action.payload;
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
             state.role = role;
             state.isAuthenticated = isAuthenticated;
-            state.isVerified = isVerified
+            state.isVerified = isVerified;
+            state.user=user
             // state.isAuthenticated = true;
             //  state.isVerified = true;  // Set to true to allow direct navigation to Dashboard after login
         },
@@ -35,6 +37,7 @@ const authSlice = createSlice({
             state.role = null;
             state.isAuthenticated = false;
             state.isVerified = false;
+            state.user=null;
         }
     }
 })

@@ -6,14 +6,13 @@ import { color } from '../../utility/color'
 import InputField from '../../components/InputField'
 import CustomButton from '../../components/CustomButton'
 import { useNavigation } from '@react-navigation/native'
-import { useDispatch, useSelector } from 'react-redux'
-import { setCredentials } from '../../features/auth/authSlice'
+import { useSelector } from 'react-redux'
+
 import { registerAPI } from '../../features/auth/authAPI'
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
     const role = useSelector((state) => state.auth.role);
-    console.log("role", role);
     const [form, setForm] = useState({
         fullName: null,
         mobile: null,
@@ -24,7 +23,7 @@ const RegisterScreen = () => {
     const [errors, setErrors] = useState({});
     const [backendError, setBackendError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const dispatch = useDispatch();
+
 
 
 
@@ -102,25 +101,11 @@ const RegisterScreen = () => {
                 role,
             };
 
-            console.log("payload", payload);
-
             const response = await registerAPI(payload);
-
-            dispatch(
-                setCredentials({
-                    accessToken: response.data.data.accessToken,
-                    refreshToken: response.data.refreshToken,
-                    role: response.data.data.role,
-                    isAuthenticated: false,
-                    isVerified: false
-                })
-            );
-
-            // Show success message without Alert, navigate directly
-            navigation.replace('EmailVerification', { otp: response?.data?.otp, email: form.email });
+            navigation.replace('VerificationScreen', { identifier: response.data.data?.verificationType == 'SMS' ? response.data.data?.mobile : response.data.data?.email });
 
         } catch (error) {
-            console.log("error in register api", error?.response);
+            console.log("error in register api", error);
             // Handle backend validation errors
             if (error?.response?.data?.message) {
                 setBackendError(error.response.data.message);
@@ -221,8 +206,8 @@ const RegisterScreen = () => {
                             <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 uppercase letter</Text>
                         </View>
 
-                        <CustomButton label='Sign Up' onPress={handleSignUp} />
-                        <Text onPress={() => navigation.navigate('Login')} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>
+                        <CustomButton label='Sign Up' onPress={handleSignUp} loading={loading} />
+                        <Text onPress={() => navigation.goBack()} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>
 
                     </View>
 

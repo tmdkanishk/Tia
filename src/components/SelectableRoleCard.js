@@ -79,7 +79,7 @@ const SelectableRoleCard = ({
             </View>
 
             {/* Radio Indicator */}
-            <View
+            {/* <View
                 style={{
                     width: 34,
                     height: 34,
@@ -100,7 +100,7 @@ const SelectableRoleCard = ({
                         }}
                     />
                 )}
-            </View>
+            </View> */}
         </TouchableOpacity>
     )
 }

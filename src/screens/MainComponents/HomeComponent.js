@@ -1,21 +1,26 @@
 import { View, Text, Dimensions, Pressable } from 'react-native'
-import React, { memo } from 'react'
+import React, { memo, use } from 'react'
 import HeaderComponent from '../MainComponents/HeaderComponent';
 import { color } from '../../utility/color';
 import { IconComponent, icons } from '../../components/IconComponent';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../features/auth/authSelectors'
 
 
 const HomeComponent = () => {
   const { width, height } = Dimensions.get('window');
   const navigation = useNavigation();
 
+  const user = useSelector(selectUser);
+  const hour = new Date().getHours();
+
   return (
     <View style={{ paddingHorizontal: 12, paddingVertical: 40, paddingTop: 50, gap: 10 }}>
       <HeaderComponent />
 
       <View style={{ borderBottomWidth: 1, paddingBottom: 20, borderColor: color.borderColor }}>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Good Morning, Rahul</Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>{hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'}, {user?.name}</Text>
         <Text style={{ fontSize: 14, color: color.secondaryText }}>Select a calculator to get started</Text>
       </View>
 
@@ -83,7 +88,7 @@ const HomeComponent = () => {
       </Pressable>
 
       <View style={{ padding: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: color.lightBlueBackground, gap: 16 }}>
-        <View style={{ backgroundColor: color.lightBlueBackground, width: width * 0.150, height: width * 0.150, borderRadius: width * 0.75, borderWidth: 1, elevation: 2, borderColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ backgroundColor: color.lightBlueBackground, width: width * 0.150, height: width * 0.150, borderRadius: width * 0.75, borderWidth: 1, borderColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
           <IconComponent icon={icons.verified} size={42} tintColor={color.primaryBlueDark} />
         </View>
         <View style={{ width: width * 0.7 }}>

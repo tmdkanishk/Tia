@@ -9,14 +9,16 @@ import { store } from '../store';
 
 const RootContent = () => {
   // Get authentication state from Redux store
-  const { isAuthenticated, isVerified } = useSelector((state) => state.auth);
+  const { isAuthenticated, isVerified, user } = useSelector((state) => state.auth);
 
-  console.log("isAuthenticated", isAuthenticated, isVerified);
+  const isLogin = isVerified && isAuthenticated;
+
+
 
   return (
     <NavigationContainer>
       {/* Show MainStack only when user is authenticated AND verified */}
-      {isAuthenticated && isVerified ? <MainStack /> : <AuthStack />}
+      {isLogin ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };
@@ -24,7 +26,7 @@ const RootContent = () => {
 const RootNavigator = () => (
   <Provider store={store}>
     {/* <PersistGate loading={null} persistor={persistor}> */}
-      <RootContent />
+    <RootContent />
     {/* </PersistGate> */}
   </Provider>
 );

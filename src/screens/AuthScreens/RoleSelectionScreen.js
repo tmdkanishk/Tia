@@ -7,34 +7,34 @@ import CustomButton from '../../components/CustomButton'
 import { useDispatch } from 'react-redux'
 import { setRole } from '../../features/auth/authSlice'
 import { useNavigation } from '@react-navigation/native'
-import {globalStyles} from '../../utility/globalStyles'
+import { globalStyles } from '../../utility/globalStyles'
 
 const roles = [
     {
-        id: "customer",
+        id: "CUSTOMER",
         title: "Customer",
         description:
             "Access policies, view documents and calculate premium.",
         icon: require('../../assets/images/man.png'),
-        activeColor: "#2563FF",
+        activeColor: color.primaryBlueDark,
         iconBackground: "#EEF4FF",
     },
     {
-        id: "employee",
+        id: "EMPLOYEE",
         title: "Employee",
         description:
             "Manage policies, quotes and operations.",
         icon: require('../../assets/images/businessman.png'),
-        activeColor: "#22C55E",
+        activeColor: color.primaryBlueDark,
         iconBackground: "#EEFDF4",
     },
     {
-        id: "agent",
+        id: "AGENT",
         title: "Agent",
         description:
             "Create quotes, manage customers and grow your business.",
         icon: require('../../assets/images/manager.png'),
-        activeColor: "#7C3AED",
+        activeColor: color.primaryBlueDark,
         iconBackground: "#F5F3FF",
     },
 ];
@@ -42,13 +42,13 @@ const roles = [
 const RoleSelectionScreen = () => {
     const navigation = useNavigation();
     const { width, height } = Dimensions.get('window');
-    const [selectedRole, setSelectedRole] = useState("customer");
+    const [selectedRole, setSelectedRole] = useState(null);
     const dispatch = useDispatch()
 
     const handleSelect = () => {
         dispatch(setRole(selectedRole));
         setTimeout(() => {
-            navigation.navigate('Register');
+            navigation.navigate('Login');
         }, 180);
     };
 
@@ -66,7 +66,7 @@ const RoleSelectionScreen = () => {
                     </View>
 
                     <View style={{ alignItems: 'center' }}>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Create Your Account</Text>
+                        <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Select Your Role</Text>
                         <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Select the role that best describes you</Text>
                     </View>
 
@@ -85,12 +85,12 @@ const RoleSelectionScreen = () => {
 
 
                     <View style={{ flexDirection: 'row', backgroundColor: color.lightBlueBackground, padding: 10, borderRadius: 10, gap: 12 }}>
-                        <IconComponent icon={icons.businessins} size={24} tintColor={color.primaryBlue} />
+                        <IconComponent icon={icons.danger} size={24} tintColor={color.primaryBlue} />
                         <Text style={{ fontSize: 14, color: color.mainText, width: width * 0.7 }}>Selected role will be permanently assigned to your account.</Text>
                     </View>
 
-                    <CustomButton onPress={() => handleSelect()} />
-                    <Text onPress={() => navigation.navigate('Login')} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>
+                    <CustomButton onPress={handleSelect} disabled={selectedRole ? false : true} />
+                    {selectedRole != null && <Text onPress={handleSelect} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>}
 
                 </View>
 
