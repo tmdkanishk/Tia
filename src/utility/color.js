@@ -23,5 +23,6 @@ export const color = {
     warningBorder: "#F5D68A",
     dark: '#000000',
     icon: '#111827',
-    error:'#f80000'
+    error:'#f80000',
+    white:'#ffffff'
 };
