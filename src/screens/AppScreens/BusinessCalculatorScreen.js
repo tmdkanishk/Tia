@@ -344,8 +344,8 @@ const BusinessCalculatorScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100, }}>
 
                 <View style={{ gap: 12 }}>
-                    <View style={{ width: width, alignItems: 'center' }}>
-                        <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.8, height: width * 0.4, resizeMode: 'contain' }} />
+                    <View style={{ width: '100%', alignItems: 'center',}}>
+                        <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.6, height: width * 0.3, }} />
                     </View>
 
                     <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>

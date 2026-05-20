@@ -78,7 +78,7 @@ export const riskIARCovers = [
     label: "Machinery Breakdown",
     selected: true,
   },
-  
+
   {
     key: "business_interruption",
     label: "Business Interruption",
@@ -89,5 +89,18 @@ export const riskIARCovers = [
     label: "mlop",
     selected: true,
   },
- 
+
 ];
+
+export const riskFireCovers = [
+  {
+    key: "terrorism",
+    label: "Terrorism",
+    selected: true,
+  },
+  {
+    key: "burglary",
+    label: "Burglary",
+    selected: true,
+  },
+]

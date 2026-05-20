@@ -7,6 +7,7 @@ import { IconComponent, icons } from '../../components/IconComponent';
 import CustomButton from '../../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import { forgotPassword, resendOtp, resetPassword } from '../../features/auth/authAPI';
+import AuthScreenHeader from './AuthScreenHeader';
 
 const ResetPasswordScreen = ({ route }) => {
     const navigation = useNavigation();
@@ -166,13 +167,14 @@ const ResetPasswordScreen = ({ route }) => {
                 <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
             </TouchableOpacity>
             <View style={{ gap: 12 }}>
-                <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
+                {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
                     <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
                     <View>
                         <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
                         <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
                     </View>
-                </View>
+                </View> */}
+                <AuthScreenHeader/>
 
                 <View style={{ alignItems: 'center' }}>
                     <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Reset Password</Text>

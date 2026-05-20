@@ -7,6 +7,7 @@ import { color } from '../../utility/color';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import { forgotPassword } from '../../features/auth/authAPI';
+import AuthScreenHeader from './AuthScreenHeader';
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
@@ -44,13 +45,15 @@ const ForgotPasswordScreen = () => {
   return (
     <View style={globalStyles.container}>
       <View style={{ gap: 20 }}>
-        <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
+        {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
           <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
           <View>
             <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
             <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
           </View>
-        </View>
+        </View> */}
+
+        <AuthScreenHeader/>
 
         <View style={{ alignItems: 'center' }}>
           <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Forgot Password</Text>
