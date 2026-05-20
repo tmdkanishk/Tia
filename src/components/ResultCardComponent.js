@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native'
 import React, { Children, memo } from 'react'
+import { color } from '../utility/color';
 
 const ResultCardComponent = ({
     heading = 'Heading',
@@ -7,35 +8,15 @@ const ResultCardComponent = ({
     children
 }) => {
     return (
-        <View style={{
-            marginTop: 16,
-            borderWidth: 2,
-            borderColor: '#4CAF50',
-            backgroundColor: '#fff',
-            borderRadius: 16,
-            padding: 14,
-            shadowColor: '#1565C0',
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.12,
-            shadowRadius: 8,
-            elevation: 4,
-        }}>
-            <View style={styles.sectionHeader}>
-                <View style={styles.sectionLine} />
-                <Text style={styles.sectionHeaderText}>{heading}</Text>
-                <View style={styles.sectionLine} />
+        <View style={{ borderWidth: 1, borderRadius: 12, borderColor: color.borderColor, padding: 10 , gap:10}}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Premimum Business Summary</Text>
+            <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.primaryBlueDark, padding: 20, gap:12 ,backgroundColor: color.lightBlueBackground }}>
+                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 16 }}>Final Premimum (Incl GST)</Text>
+                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 24, fontWeight:'600' }}>₹ {value}</Text>
             </View>
-
             {
                 children
             }
-
-
-            <View style={styles.resultRowHighlight}>
-                <Text style={styles.resultLabelHighlight}>Gross Premium</Text>
-                <Text style={styles.resultValueHighlight}>₹{value}</Text>
-            </View>
-
         </View>
     )
 }

@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { color } from '../utility/color';
 
 const YesNoRadioComponent = ({
     label = 'Select Option',
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         marginBottom: 10,
-        color: '#fff',
+        color: color.mainText,
     },
 
     radioContainer: {
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
         height: 22,
         borderRadius: 11,
         borderWidth: 2,
-        borderColor: '#fff',
+        borderColor: color.primaryBlueDark,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5,
-        backgroundColor: '#fff',
+        backgroundColor: color.primaryBlueDark,
     },
 
     optionText: {

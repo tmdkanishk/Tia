@@ -16,6 +16,8 @@ import email from '../assets/images/email.png'
 import password from '../assets/images/password.png'
 import checkmark from '../assets/images/checkmark.png'
 import danger from '../assets/images/danger.png'
+import switchleft from '../assets/images/switchleft.png'
+import switchright from '../assets/images/switchright.png'
 
 export const icons = {
     downarrow: downarrow,
@@ -33,7 +35,10 @@ export const icons = {
     email: email,
     password: password,
     checkmark: checkmark,
-    danger: danger
+    danger: danger,
+    switchleft: switchleft,
+    switchright: switchright
+
 }
 
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { globalStyles } from '../../utility/globalStyles'
 import { IconComponent, icons } from '../../components/IconComponent';
 import { color } from '../../utility/color';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch} from 'react-redux';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import { loginAPI } from '../../features/auth/authAPI';
@@ -12,8 +12,6 @@ import { setCredentials } from '../../features/auth/authSlice';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
-    const { role } = useSelector((state) => state.auth);
-    const [mobile, setMobile] = useState(null);
     const [emailLoginForm, setEmailLoginForm] = useState({
         identifier: '',
         password: ''
@@ -38,21 +36,21 @@ const LoginScreen = () => {
             console.log("response", response.data);
             dispatch(
                 setCredentials({
-                    accessToken: response.data.accessToken,
-                    refreshToken: response.data.refreshToken,
-                    role: response.data.data.role,
+                    accessToken: response.data?.accessToken,
+                    refreshToken: response.data?.refreshToken,
+                    role: response.data?.data?.role,
                     isAuthenticated: true,
                     isVerified: true,
-                    user: response.data.data,
+                    user: response.data?.data,
                 })
             );
 
         } catch (error) {
-            console.log("error", error.response.data);
-            if (error.response.data?.data == null) {
+            console.log("error", error?.response?.data);
+            if (error?.response?.data?.data == null) {
                 Alert.alert(
                     'Login Failed',
-                    error.response.data?.message,
+                    error?.response?.data?.message,
                     [
                         {
                             text: 'OK',
@@ -60,7 +58,7 @@ const LoginScreen = () => {
                         }
                     ]
                 );
-            } else if (error.response.data?.data != null) {
+            } else if (error?.response?.data?.data != null) {
                 navigation.replace('VerificationScreen', { identifier: error.response.data?.data?.verificationType == 'SMS' ? error.response.data?.data?.mobile : error.response.data?.data?.email });
 
             } else {
