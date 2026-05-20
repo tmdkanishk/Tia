@@ -234,8 +234,8 @@ const IARCalculatorScreen = () => {
             </TouchableOpacity>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
                 <View style={{ gap: 12 }}>
-                    <View style={{ width: width, alignItems: 'center' }}>
-                        <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.8, height: width * 0.4, resizeMode: 'contain' }} />
+                    <View style={{ width: '100%', alignItems: 'center', }}>
+                        <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.6, height: width * 0.3, }} />
                     </View>
                     <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
                         <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
@@ -258,16 +258,16 @@ const IARCalculatorScreen = () => {
                             <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
 
                             <View style={{ gap: 10, marginBottom: 10 }}>
-                                <Text style={{ color: color.mainText, fontSize:14,  fontWeight: '600' }}>Risk Code</Text>
-                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor:color.borderColor, backgroundColor:color.cardBackground }}>
+                                <Text style={{ color: color.mainText, fontSize: 14, fontWeight: '600' }}>Risk Code</Text>
+                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground }}>
                                     <Text style={{ color: form.customerDetails.riskCode ? color.mainText : color.secondaryText }}>{form.customerDetails.riskCode || 'Risk Code'}</Text>
                                 </Pressable>
                             </View>
 
                             <View style={{ gap: 10, marginBottom: 10 }}>
-                                <Text style={{ color: color.mainText, fontSize:14,  fontWeight: '600'}}>Occupancy</Text>
-                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor:color.borderColor, backgroundColor:color.cardBackground }}>
-                                    <Text style={{ color: form.customerDetails.occupancy ? color.mainText : color.secondaryText}}>{form.customerDetails.occupancy || 'Occupancy'}</Text>
+                                <Text style={{ color: color.mainText, fontSize: 14, fontWeight: '600' }}>Occupancy</Text>
+                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground }}>
+                                    <Text style={{ color: form.customerDetails.occupancy ? color.mainText : color.secondaryText }}>{form.customerDetails.occupancy || 'Occupancy'}</Text>
                                 </Pressable>
                             </View>
                             <InputField value={form.customerDetails?.description} onChangeText={(text) => handleChange("customerDetails", "description", text)} placeholder='Description' label={'Description'} containerInputStyle={{ paddingVertical: 6 }} />
@@ -446,7 +446,7 @@ const IARCalculatorScreen = () => {
 
                         <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
                             <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                <InputField  onEndEditing={() => handleSectionChange("section2", "terrorismSI", form.sections.section2.businessInterruptionSI)} value={form.sections.section2.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section2", "businessInterruptionSI", text)} keyboardType='numeric'   placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }} />
+                                <InputField onEndEditing={() => handleSectionChange("section2", "terrorismSI", form.sections.section2.businessInterruptionSI)} value={form.sections.section2.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section2", "businessInterruptionSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }} />
                                 {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section2.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                             </View>
                         </View>
@@ -549,7 +549,7 @@ const IARCalculatorScreen = () => {
                         </Text>
                     </TouchableOpacity> */}
 
-                    {result && <ResultCardComponent heading='Business' value={result?.summary?.grossPremium || 0.00}
+                    {result && <ResultCardComponent heading='IAR' value={result?.summary?.grossPremium || 0.00}
                         children={
                             <View style={{ gap: 10 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>

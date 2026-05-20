@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux'
 import { setRole } from '../../features/auth/authSlice'
 import { useNavigation } from '@react-navigation/native'
 import { globalStyles } from '../../utility/globalStyles'
+import AuthScreenHeader from '../AuthScreens/AuthScreenHeader'
 
 const roles = [
     {
@@ -57,13 +58,14 @@ const RoleSelectionScreen = () => {
         <View style={globalStyles.container}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={{ gap: 20 }}>
-                    <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
+                    <AuthScreenHeader/>
+                    {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
                         <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
                         <View>
                             <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
                             <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
                         </View>
-                    </View>
+                    </View> */}
 
                     <View style={{ alignItems: 'center' }}>
                         <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Select Your Role</Text>
