@@ -5,7 +5,9 @@ import AuthStack from './AuthStack';
 import MainStack from './MainStack';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
-import { store } from '../store';
+import { persistor, store } from '../store';
+import { ActivityIndicator, View } from 'react-native';
+import { color } from '../utility/color';
 
 const RootContent = () => {
   // Get authentication state from Redux store
@@ -23,11 +25,34 @@ const RootContent = () => {
   );
 };
 
+// const RootNavigator = () => (
+//   <Provider store={store}>
+//     {/* <PersistGate loading={null} persistor={persistor}> */}
+//     <RootContent />
+//     {/* </PersistGate> */}
+//   </Provider>
+// );
+
+
+
+const SplashLoader = () => {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+      <ActivityIndicator size="large" color={color.primaryBlueDark} />
+    </View>
+  );
+};
+
 const RootNavigator = () => (
   <Provider store={store}>
-    {/* <PersistGate loading={null} persistor={persistor}> */}
-    <RootContent />
-    {/* </PersistGate> */}
+    <PersistGate loading={<SplashLoader />} persistor={persistor}>
+      <RootContent />
+    </PersistGate>
   </Provider>
 );
 
