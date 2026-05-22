@@ -8,11 +8,13 @@ import CustomButton from '../../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 import { forgotPassword, resendOtp, resetPassword } from '../../features/auth/authAPI';
 import AuthScreenHeader from './AuthScreenHeader';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ResetPasswordScreen = ({ route }) => {
     const navigation = useNavigation();
-    const { identifier } = route.params;
+    const { identifier, sentOtp } = route.params;
     const [loading, setLoading] = useState(false);
+    const [demo, setDemo] = useState(sentOtp);
     const [resetForm, setResetForm] = useState({
         password: '',
         confirmPassword: '',
@@ -162,71 +164,74 @@ const ResetPasswordScreen = ({ route }) => {
     };
 
     return (
-        <View style={globalStyles.container}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-                <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
-            </TouchableOpacity>
-            <View style={{ gap: 12 }}>
-                {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
+        <SafeAreaView>
+            <View style={globalStyles.newContainer}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
+                </TouchableOpacity>
+                <View style={{ gap: 12 }}>
+                    {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
                     <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
                     <View>
                         <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
                         <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
                     </View>
                 </View> */}
-                <AuthScreenHeader/>
+                    <AuthScreenHeader />
 
-                <View style={{ alignItems: 'center' }}>
-                    <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Reset Password</Text>
-                </View>
-
-                <InputField
-                    label={'New Password'}
-                    icon={icons.password}
-                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                    placeholder={'Enter new password'}
-                    secureTextEntry
-                    onChangeText={(text) => handleChange("password", text)}
-                    value={resetForm.password}
-                    error={errors.password}
-                />
-                <InputField
-                    label={'Confirm Password'}
-                    icon={icons.password}
-                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                    placeholder={'Enter confirm password'}
-                    secureTextEntry
-                    onChangeText={(text) => handleChange("confirmPassword", text)}
-                    value={resetForm.confirmPassword}
-                    error={errors.confirmPassword}
-                />
-
-
-                <InputField
-                    label={'OTP'}
-                    icon={icons.password}
-                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                    placeholder={'OTP'}
-                    onChangeText={(text) => handleChange("otp", text)}
-                    value={resetForm.otp}
-                    error={errors.otp}
-                    maxLength={6}
-                    keyboardType='number-pad'
-                />
-
-                {backendError && <Text style={{ color: color.error }}>{backendError}</Text>}
-
-                {countdown == 0 &&
-                    <View style={{ paddingHorizontal: 12 }}>
-                        <Text onPress={handleResend} style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP</Text>
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Reset Password</Text>
                     </View>
-                }
 
-                <CustomButton label='Reset Password' onPress={() => handleResetPassword()} loading={loading} />
-                {countdown > 0 && <Text style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP in {countdown}s</Text>}
+                    <InputField
+                        label={'New Password'}
+                        icon={icons.password}
+                        iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                        placeholder={'Enter new password'}
+                        secureTextEntry
+                        onChangeText={(text) => handleChange("password", text)}
+                        value={resetForm.password}
+                        error={errors.password}
+                    />
+                    <InputField
+                        label={'Confirm Password'}
+                        icon={icons.password}
+                        iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                        placeholder={'Enter confirm password'}
+                        secureTextEntry
+                        onChangeText={(text) => handleChange("confirmPassword", text)}
+                        value={resetForm.confirmPassword}
+                        error={errors.confirmPassword}
+                    />
 
+
+                    <InputField
+                        label={'OTP'}
+                        icon={icons.password}
+                        iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                        placeholder={'OTP'}
+                        onChangeText={(text) => handleChange("otp", text)}
+                        value={resetForm.otp}
+                        error={errors.otp}
+                        maxLength={6}
+                        keyboardType='number-pad'
+                    />
+                    {demo && <Text style={{ color: color.successGreen, fontWeight: '600', textAlign:'right' }}>Demo OTP : {demo}</Text>}
+
+                    {backendError && <Text style={{ color: color.error }}>{backendError}</Text>}
+
+                    {countdown == 0 &&
+                        <View style={{ paddingHorizontal: 12 }}>
+                            <Text onPress={handleResend} style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP</Text>
+                        </View>
+                    }
+
+                    <CustomButton label='Reset Password' onPress={() => handleResetPassword()} loading={loading} />
+                    {countdown > 0 && <Text style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP in {countdown}s</Text>}
+
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }
 

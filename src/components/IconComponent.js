@@ -18,6 +18,29 @@ import checkmark from '../assets/images/checkmark.png'
 import danger from '../assets/images/danger.png'
 import switchleft from '../assets/images/switchleft.png'
 import switchright from '../assets/images/switchright.png'
+import phone from '../assets/images/phone.png'
+import threat from '../assets/images/threat.png'
+import tag from '../assets/images/tag.png'
+import indured from '../assets/images/indured.png'
+import housefire from '../assets/images/housefire.png'
+import process from '../assets/images/process.png'
+import boiler from '../assets/images/boiler.png'
+import electrical from '../assets/images/electrical.png'
+import devices from '../assets/images/devices.png'
+import money from '../assets/images/money.png'
+import car from '../assets/images/car.png'
+import mansafe from '../assets/images/mansafe.png'
+import protection from '../assets/images/protection.png'
+import thief from '../assets/images/thief.png'
+import growth from '../assets/images/growth.png'
+import home from '../assets/images/home.png'
+import policy from '../assets/images/policy.png'
+import service from '../assets/images/service.png'
+import logout from '../assets/images/logout.png'
+import round from '../assets/images/round.png'
+import logoutf from '../assets/images/logoutf.png'
+
+
 
 export const icons = {
     downarrow: downarrow,
@@ -37,7 +60,29 @@ export const icons = {
     checkmark: checkmark,
     danger: danger,
     switchleft: switchleft,
-    switchright: switchright
+    switchright: switchright,
+    phone: phone,
+    threat: threat,
+    tag: tag,
+    indured: indured,
+    housefire: housefire,
+    process: process,
+    boiler: boiler,
+    electrical: electrical,
+    devices: devices,
+    money: money,
+    car: car,
+    mansafe: mansafe,
+    protection: protection,
+    thief: thief,
+    growth: growth,
+    home: home,
+    policy: policy,
+    service: service,
+    logout: logout,
+    round: round,
+    logoutf: logoutf
+
 
 }
 

@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import React, { memo } from 'react'
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
+import CustomButton from '../../components/CustomButton';
 
 const ProfileComponent = () => {
   const dispatch = useDispatch();
@@ -15,9 +16,7 @@ const ProfileComponent = () => {
 
   return (
     <View style={{ flex:1, padding:12 }}>
-      <TouchableOpacity style={{ marginTop:50}} onPress={onLogoutPress}>
-        <Text style={{ color: 'white', fontSize: 16 }}>logout</Text>
-      </TouchableOpacity>
+      <CustomButton label='Logout' onPress={onLogoutPress}/>
     </View>
   )
 }

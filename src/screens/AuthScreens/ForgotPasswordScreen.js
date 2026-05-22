@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { globalStyles } from '../../utility/globalStyles'
@@ -8,6 +8,7 @@ import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import { forgotPassword } from '../../features/auth/authAPI';
 import AuthScreenHeader from './AuthScreenHeader';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
@@ -17,7 +18,7 @@ const ForgotPasswordScreen = () => {
   const [backendError, setBackendError] = useState(null);
 
   const handleForgotPassword = async () => {
-   
+
     if (!identifier) {
       setError('Email or mobile number is required');
       return;
@@ -28,7 +29,7 @@ const ForgotPasswordScreen = () => {
       const response = await forgotPassword({ identifier: identifier });
       if (response.data.success) {
         console.log("Forgot Password Response:", response.data);
-        navigation.replace('ResetPassword', { identifier: response.data.data.verificationType == 'SMS' ? response.data.data.mobile : response.data.data.email });
+        navigation.navigate('ResetPassword', { identifier: response.data.data.verificationType == 'SMS' ? response.data.data.mobile : response.data.data.email, sentOtp:response.data?.otp });
       } else {
         setBackendError(response.data?.message || 'An error occurred. Please try again.');
       }
@@ -43,40 +44,37 @@ const ForgotPasswordScreen = () => {
   }
 
   return (
-    <View style={globalStyles.container}>
-      <View style={{ gap: 20 }}>
-        {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
-          <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
-          <View>
-            <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
-            <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
+    <SafeAreaView>
+      <View style={globalStyles.newContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
+        </TouchableOpacity>
+        <View style={{ gap: 20 }}>
+          <AuthScreenHeader />
+
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Forgot Password</Text>
           </View>
-        </View> */}
 
-        <AuthScreenHeader/>
+          <InputField
+            label={'Email or mobile number'}
+            icon={icons.user}
+            iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+            placeholder={'Email or mobile number'}
+            onChangeText={(text) => { setIdentifier(text); setError(null); setBackendError(null); }}
+            value={identifier}
+            error={error}
+          />
 
-        <View style={{ alignItems: 'center' }}>
-          <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Forgot Password</Text>
+          {
+            backendError && <Text style={{ color: color.error }}>{backendError}</Text>
+          }
+
+          <CustomButton label='Forgot Password' onPress={handleForgotPassword} loading={loading} />
+
         </View>
-
-        <InputField
-          label={'Email or mobile number'}
-          icon={icons.email}
-          iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-          placeholder={'Email or mobile number'}
-          onChangeText={(text) => { setIdentifier(text); setError(null); setBackendError(null); }}
-          value={identifier}
-          error={error}
-        />
-
-        {
-          backendError && <Text style={{ color: color.error }}>{backendError}</Text>
-        }
-
-        <CustomButton label='Forgot Password' onPress={handleForgotPassword} loading={loading}/>
-
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

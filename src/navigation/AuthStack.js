@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator();
 const AuthStack = () => {
     return (
         <>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar backgroundColor={'#F8FAFC'} barStyle="dark-content" />
             <Stack.Navigator
                 screenOptions={{ headerShown: false }}
                 initialRouteName={'RoleSelection'}

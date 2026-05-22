@@ -7,7 +7,21 @@ export const globalStyles = StyleSheet.create({
         backgroundColor: color.screenBackground,
         paddingHorizontal: 12,
         paddingVertical: 40,
-        paddingBottom:80
+        paddingBottom: 80,
+        height: '100%',
+    },
+
+
+    newContainer: {
+        // backgroundColor: color.screenBackground,
+        backgroundColor: color.cardBackground,
+        paddingHorizontal: 12,
+        height: '100%',
+    },
+
+    mainContainer: {
+        backgroundColor: color.screenBackground,
+        height: '100%',
     }
 })
 

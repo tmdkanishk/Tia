@@ -13,7 +13,7 @@ const Stack = createNativeStackNavigator();
 const MainStack = () => {
     return (
         <>
-            <StatusBar backgroundColor={'#0D47A1'} barStyle={'light-content'} />
+            <StatusBar backgroundColor={'#F8FAFC'} barStyle="dark-content"/>
             <Stack.Navigator
                 screenOptions={{ headerShown: false }}
                 initialRouteName='MainLayout'

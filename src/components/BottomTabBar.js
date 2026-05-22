@@ -2,12 +2,14 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { color } from '../utility/color';
+import { IconComponent, icons } from './IconComponent';
+
 
 const TABS = [
-  { id: 'Home', icon: '🏠', screen: 'home' },
-  { id: 'Policies', icon: '🛡️', screen: 'policies' },
-  { id: 'Profile', icon: '👤', screen: 'profile' },
-  { id: 'Support', icon: '🎧', screen: 'support' },
+  { id: 'Home', icon: icons.home, screen: 'home' },
+  { id: 'Policies', icon: icons.policy, screen: 'policies' },
+  { id: 'Profile', icon: icons.user, screen: 'profile' },
+  { id: 'Support', icon: icons.service, screen: 'support' },
 ];
 
 const BottomTabBar = ({ onButtonClick, active }) => (
@@ -17,14 +19,16 @@ const BottomTabBar = ({ onButtonClick, active }) => (
       return (
         <TouchableOpacity
           key={tab.id}
-          style={styles.tabItem}
+          style={[styles.tabItem, isActive && styles.activeTab]}
           onPress={() => onButtonClick(tab.screen)}
           activeOpacity={0.7}
+          disabled={tab.id == 'Home' ? false : true}
         >
-          {isActive && <View style={styles.activeIndicator} />}
-          <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>
+          {/* {isActive && <View style={styles.activeIndicator} />} */}
+          <IconComponent icon={tab.icon} size={24} tintColor={isActive ? color.primaryBlueDark : color.secondaryText} />
+          {/* <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>
             {tab.icon}
-          </Text>
+          </Text> */}
           <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
             {tab.id}
           </Text>
@@ -40,8 +44,6 @@ const styles = StyleSheet.create({
     backgroundColor: color.cardBackground,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
-    paddingVertical: 10,
-    paddingBottom: 24, // safe area space
     borderTopWidth: 1,
     borderColor: 'rgba(255,255,255,0.6)',
     shadowColor: '#000',
@@ -49,15 +51,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 20,
-    alignItems: 'flex-start',
-    height: 136
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 12
   },
   tabItem: {
-    flex: 1,
+    // flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    paddingTop: 4,
+    borderRadius: 10,
+    height: 56,
+    width: 56
   },
   activeIndicator: {
     position: 'absolute',
@@ -77,13 +83,16 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 11,
-    color: '#5C7A9E',
+    color: color.secondaryText,
     fontWeight: '500',
   },
   tabLabelActive: {
     color: '#1565C0',
     fontWeight: '700',
   },
+  activeTab: {
+    backgroundColor: color.lightBlueBackground
+  }
 });
 
 export default memo(BottomTabBar);

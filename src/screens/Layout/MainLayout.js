@@ -6,6 +6,8 @@ import PoliciesComponent from '../MainComponents/PoliciesComponent'
 import ProfileComponent from '../MainComponents/ProfileComponent'
 import SupportComponent from '../MainComponents/SupportComponent'
 import { color } from '../../utility/color';
+import { globalStyles } from '../../utility/globalStyles'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const MainLayout = () => {
   const [activeScreen, setActiveScreen] = useState('home');
@@ -34,15 +36,16 @@ const MainLayout = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
-      <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={{ paddingBottom: 140, }} showsVerticalScrollIndicator={false}>
-        {renderScreen()}
-      </ScrollView>
-      <View style={{ position: 'absolute', bottom: 0, width: '100%', height: 136 }}>
-        <BottomTabBar onButtonClick={handleTabPress} active={activeScreen} />
+    <SafeAreaView>
+      <View style={globalStyles.mainContainer}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+          {renderScreen()}
+        </ScrollView>
+        <View style={{ position: 'absolute', bottom: 0, width: '100%' }}>
+          <BottomTabBar onButtonClick={handleTabPress} active={activeScreen} />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
 
   )
 }

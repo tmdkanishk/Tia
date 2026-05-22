@@ -3,8 +3,11 @@ import React, { memo } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { IconComponent, icons } from './IconComponent';
 
-const HeaderComponent = ({heading}) => {
+
+const HeaderComponent = ({ heading }) => {
     const navigation = useNavigation();
+
+
     return (
         <View style={styles.header}>
             <TouchableOpacity style={styles.calcIconBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>

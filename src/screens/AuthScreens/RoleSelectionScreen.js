@@ -9,6 +9,7 @@ import { setRole } from '../../features/auth/authSlice'
 import { useNavigation } from '@react-navigation/native'
 import { globalStyles } from '../../utility/globalStyles'
 import AuthScreenHeader from '../AuthScreens/AuthScreenHeader'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const roles = [
     {
@@ -55,11 +56,12 @@ const RoleSelectionScreen = () => {
 
 
     return (
-        <View style={globalStyles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={{ gap: 20 }}>
-                    <AuthScreenHeader/>
-                    {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
+        <SafeAreaView>
+            <View style={globalStyles.newContainer}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={{ gap: 20 }}>
+                        <AuthScreenHeader />
+                        {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
                         <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
                         <View>
                             <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
@@ -67,37 +69,38 @@ const RoleSelectionScreen = () => {
                         </View>
                     </View> */}
 
-                    <View style={{ alignItems: 'center' }}>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Select Your Role</Text>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Select the role that best describes you</Text>
+                        <View style={{ alignItems: 'center' }}>
+                            <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Select Your Role</Text>
+                            <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Select the role that best describes you</Text>
+                        </View>
+
+                        {roles.map((item) => (
+                            <SelectableRoleCard
+                                key={item.id}
+                                title={item.title}
+                                description={item.description}
+                                icon={item.icon}
+                                selected={selectedRole === item.id}
+                                onPress={() => setSelectedRole(item.id)}
+                                activeColor={item.activeColor}
+                                iconBackground={item.iconBackground}
+                            />
+                        ))}
+
+
+                        <View style={{ flexDirection: 'row', backgroundColor: color.lightBlueBackground, padding: 10, borderRadius: 10, gap: 12 }}>
+                            <IconComponent icon={icons.danger} size={24} tintColor={color.primaryBlue} />
+                            <Text style={{ fontSize: 14, color: color.mainText, width: width * 0.7 }}>Selected role will be permanently assigned to your account.</Text>
+                        </View>
+
+                        <CustomButton onPress={handleSelect} disabled={selectedRole ? false : true} />
+
+
                     </View>
 
-                    {roles.map((item) => (
-                        <SelectableRoleCard
-                            key={item.id}
-                            title={item.title}
-                            description={item.description}
-                            icon={item.icon}
-                            selected={selectedRole === item.id}
-                            onPress={() => setSelectedRole(item.id)}
-                            activeColor={item.activeColor}
-                            iconBackground={item.iconBackground}
-                        />
-                    ))}
-
-
-                    <View style={{ flexDirection: 'row', backgroundColor: color.lightBlueBackground, padding: 10, borderRadius: 10, gap: 12 }}>
-                        <IconComponent icon={icons.danger} size={24} tintColor={color.primaryBlue} />
-                        <Text style={{ fontSize: 14, color: color.mainText, width: width * 0.7 }}>Selected role will be permanently assigned to your account.</Text>
-                    </View>
-
-                    <CustomButton onPress={handleSelect} disabled={selectedRole ? false : true} />
-                    {selectedRole != null && <Text onPress={handleSelect} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>}
-
-                </View>
-
-            </ScrollView>
-        </View>
+                </ScrollView>
+            </View>
+        </SafeAreaView>
     )
 }
 

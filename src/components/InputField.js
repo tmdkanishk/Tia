@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    // color: '#222',
+    color:color.mainText
   },
 
   eyeBtn: {
