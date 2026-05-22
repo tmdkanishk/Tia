@@ -22,10 +22,12 @@ const SelectableRoleCard = ({
                 borderWidth: 2,
                 borderColor: selected ? activeColor : color.borderColor,
                 borderRadius: 12,
-                padding: 12,
+                padding: 18,
                 flexDirection: "row",
                 alignItems: "center",
                 backgroundColor: color.cardBackground,
+                paddingVertical:20
+                
             }}
         >
             {/* Left Icon */}
