@@ -30,20 +30,23 @@ apiClient.interceptors.response.use(
     // If token expired and not retried already
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
       try {
         const res = await axios.post(`${BASE_URL}/api/auth/refresh-token`, {
           refreshToken,
         });
 
+        console.log("refresh-token res", res);
         const newAccessToken = res.data.accessToken;
 
-        // update Redux
+        // update Redux while preserving current auth state
         store.dispatch(
           setCredentials({
             accessToken: newAccessToken,
             refreshToken,
             role: state.auth.role,
+            isAuthenticated: state.auth.isAuthenticated,
+            isVerified: state.auth.isVerified,
+            user: state.auth.user,
           })
         );
 
@@ -51,6 +54,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (err) {
+        console.log("error ", err);
         store.dispatch(logout());
       }
     }
