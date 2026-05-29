@@ -393,7 +393,7 @@ const BusinessCalculatorScreen = () => {
                                         <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
                                             <IconComponent icon={icons.shield} tintColor={color.white} size={18} />
                                         </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Rick Cover </Text>
+                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Optional Covers</Text>
                                     </View>
 
                                     {

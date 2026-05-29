@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, KeyboardAvoidingView, Image, Dimensions } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, KeyboardAvoidingView, Image, Dimensions, Alert } from 'react-native'
 import React, { useState } from 'react'
 import GlassCard from '../../components/GlassCard'
 import { IconComponent, icons } from '../../components/IconComponent'
@@ -16,23 +16,70 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 const IARCalculatorScreen = () => {
     const { width } = Dimensions.get('window');
-    const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
-    const [terrorism, setTerrorism] = useState(true);
     const [riskCover, setRiskCover] = useState(riskIARCovers)
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [viewButton, setViewButton] = useState(true);
     const [expanded, setExpanded] = useState({
         insuredDetails: true,
-        rickCover: true,
+        optionalCovers: true,
         discounts: true,
         sumInsured: true,
-        fireAllied: false,
-        businessInterruption: false,
-        machineryBreakdown: false,
-        mlop: false
+        fireAllied: true,
+        businessInterruption: true,
+        machineryBreakdown: true,
+        mlop: true
+    });
+
+
+    const [sumInsuredData, setSumInsuredData] = useState({
+        buildingSI: '',
+        plantAndMachinerySI: '',
+        stockSI: '',
+        furnitureFixturesFittingsSI: '',
+        otherContentsSI: '',
 
     });
+
+    const [fireAllied, setFireAllied] = useState({
+        "sectionName": "Fire & Allied Perils",
+        "buildingSI": '',
+        "plantAndMachinerySI": '',
+        "stockSI": '',
+        "furnitureFixturesFittingsSI": '',
+        "otherContentsSI": '',
+        "earthquakeSI": '',
+        "stfiSI": '',
+        "terrorismSI": ''
+    })
+
+    const [businessInterruptionData, setBusinessInterruptionData] = useState(
+        {
+            "sectionName": "Business Interruption",
+            "businessInterruptionSI": "",
+            "terrorismSI": ""
+        },
+    )
+
+    const [machineryData, setMachineryData] = useState(
+        {
+            "sectionName": "Machinery Breakdown",
+            "machineryBreakdownSI": ""
+        },
+    )
+
+    const [mlopData, setMlopData] = useState(
+        {
+            "sectionName": "MLOP",
+            "mlopSI": ""
+        },
+    )
+
+
+
+    const [totalSumInsured, setTotalSumInsured] = useState(null);
+
     const [form, setForm] = useState(
         {
             "customerDetails": {
@@ -44,59 +91,16 @@ const IARCalculatorScreen = () => {
                 "description": null
             },
 
-            "riskCovers": {
-                "terrorism": true,
-                "burglary": true,
-                "fireAndAlliedPerils": false,
-                "businessInterruption": false,
-                "machineryBreakdown": false,
+            "optionalCovers": {
+                "terrorism": false,
                 "mlop": false
             },
 
             "discounts": {
-                "iibDiscountPercent": 0,
-                "natcatDiscountPercent": 0
-            },
-
-            "sumInsured": {
-                "buildingSI": 0,
-                "plantAndMachinerySI": 0,
-                "stockSI": 0,
-                "furnitureFixturesFittingsSI": 0,
-                "otherContentsSI": 0,
-                "totalSI": 0
-            },
-
-            "sections": {
-
-                "section1": {
-                    "sectionName": "Fire & Allied Perils",
-                    "buildingSI": 0,
-                    "plantAndMachinerySI": 0,
-                    "stockSI": 0,
-                    "furnitureFixturesFittingsSI": 0,
-                    "otherContentsSI": 0,
-                    "earthquakeSI": 0,
-                    "stfiSI": 0,
-                    "terrorismSI": 0
-                },
-
-                "section2": {
-                    "sectionName": "Business Interruption",
-                    "businessInterruptionSI": 0,
-                    "terrorismSI": 0
-                },
-
-                "section3A": {
-                    "sectionName": "Machinery Breakdown",
-                    "machineryBreakdownSI": 0
-                },
-
-                "section3B": {
-                    "sectionName": "MLOP",
-                    "mlopSI": 0
-                }
+                "iibDiscountPercent": "",
+                "natcatDiscountPercent": ""
             }
+
         }
     );
 
@@ -110,103 +114,10 @@ const IARCalculatorScreen = () => {
         }));
     };
 
-    const handleSectionChange = (sectionKey, field, value) => {
-        setForm(prev => ({
-            ...prev,
-            sections: {
-                ...prev.sections,
-                [sectionKey]: {
-                    ...prev.sections[sectionKey],
-                    [field]: value
-                }
-            }
-        }));
-    };
 
     const onSelectRiskCode = (data) => {
         handleChange("customerDetails", "riskCode", data?.risk_code);
         handleChange("customerDetails", "occupancy", data?.occupancy_desc);
-    }
-
-    const onHandleSubmitInput = () => {
-        let totalSumInsured =
-            Number(form.sumInsured.buildingSI || 0) +
-            Number(form.sumInsured.plantAndMachinerySI || 0) +
-            Number(form.sumInsured.stockSI || 0) +
-            Number(form.sumInsured.furnitureFixturesFittingsSI || 0) +
-            Number(form.sumInsured.otherContentsSI || 0);
-        console.log("totalSumInsured", totalSumInsured);
-        handleChange("sumInsured", "totalSI", totalSumInsured.toString());
-        // section1
-        handleSectionChange("section1", "buildingSI", form.sumInsured.buildingSI);
-        handleSectionChange("section1", "plantAndMachinerySI", form.sumInsured.plantAndMachinerySI);
-        handleSectionChange("section1", "stockSI", form.sumInsured.stockSI);
-        handleSectionChange("section1", "furnitureFixturesFittingsSI", form.sumInsured.furnitureFixturesFittingsSI);
-        handleSectionChange("section1", "otherContentsSI", form.sumInsured.otherContentsSI);
-        handleSectionChange("section1", "earthquakeSI", totalSumInsured.toString());
-        handleSectionChange("section1", "stfiSI", totalSumInsured.toString());
-        handleSectionChange("section1", "terrorismSI", totalSumInsured.toString());
-    }
-
-    const getUpdatedRiskCovers = (data) => {
-        const sections = data.sections;
-
-        return {
-            ...data,
-
-            riskCovers: {
-                ...data.riskCovers,
-
-                fireAndAlliedPerils:
-                    sections.section1.buildingSI > 0 ||
-                    sections.section1.plantAndMachinerySI > 0 ||
-                    sections.section1.stockSI > 0 ||
-                    sections.section1.furnitureFixturesFittingsSI > 0 ||
-                    sections.section1.otherContentsSI > 0 ||
-                    sections.section1.earthquakeSI > 0 ||
-                    sections.section1.stfiSI > 0 ||
-                    sections.section1.terrorismSI > 0,
-
-                businessInterruption:
-                    sections.section2.businessInterruptionSI > 0 ||
-                    sections.section2.terrorismSI > 0,
-
-                machineryBreakdown:
-                    sections.section3A.machineryBreakdownSI > 0,
-
-                mlop:
-                    sections.section3B.mlopSI > 0,
-            }
-        };
-    };
-
-    const handleIARCalculate = async () => {
-        try {
-            setLoading(true);
-            let updatedForm = getUpdatedRiskCovers(form);
-
-            let terrorism = riskCover.find(c => c.key == 'terrorism').selected;
-
-            if (terrorism === false) {
-                updatedForm.sections.section1.terrorismSI = 0;
-                updatedForm.sections.section2.terrorismSI = 0;
-            }
-            // if (updatedForm?.riskCovers?.terrorism === false) {
-            //     updatedForm.sections.section1.terrorismSI = 0;
-            //     updatedForm.sections.section2.terrorismSI = 0;
-            // }
-            console.log("updatedForm", updatedForm);
-            setForm(updatedForm);
-
-            const response = await calculatIARIndurance(updatedForm);
-            console.log("response", response.data?.data);
-            setResult(response.data?.data);
-
-        } catch (error) {
-            console.log("error", error.response.data);
-        } finally {
-            setLoading(false);
-        }
     }
 
 
@@ -224,6 +135,125 @@ const IARCalculatorScreen = () => {
         return riskCover.find((item) => item.key === key)?.selected;
     };
 
+    const handleChangeText = (key, value) => {
+        const updatedData = {
+            ...sumInsuredData,
+            [key]: value,
+        };
+        const total =
+            (parseFloat(updatedData.buildingSI) || 0) +
+            (parseFloat(updatedData.plantAndMachinerySI) || 0) +
+            (parseFloat(updatedData.stockSI) || 0) +
+            (parseFloat(updatedData.furnitureFixturesFittingsSI) || 0) +
+            (parseFloat(updatedData.otherContentsSI) || 0);
+        setSumInsuredData(updatedData);
+        setTotalSumInsured(total.toString());
+    };
+
+
+    const handleFireAliedChangeText = (key, value) => {
+        const updatedData = {
+            ...fireAllied,
+            [key]: value,
+        };
+
+        // console.log("totalSumInsured", totalSumInsured);
+        // updatedData.earthquakeSI = totalSumInsured
+        // updatedData.stfiSI = totalSumInsured
+        // updatedData.terrorismSI = totalSumInsured;
+        setFireAllied(updatedData);
+    };
+
+    const handleBusinessInterruptionChange = (key, value) => {
+        setBusinessInterruptionData((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    }
+
+    // const handleIARCalculate = async () => {
+    //     try {
+    //         setLoading(true);
+    //         // let terrorism = riskCover.find(c => c.key == 'terrorism').selected;
+
+    //         // const response = await calculatIARIndurance(updatedForm);
+
+    //         // setResult(response.data?.data);
+
+    //         console.log("form",form);
+
+    //     } catch (error) {
+    //         Alert.alert(
+    //             "Error",
+    //             error?.response?.data?.message || "Something went wrong"
+    //         );
+    //         console.log("error", error.response.data);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }
+
+
+    const handleIARCalculate = async () => {
+        try {
+            setLoading(true);
+
+            const updatedForm = {
+                customerDetails: form.customerDetails,
+
+                optionalCovers: {
+                    terrorism: isRiskCoverSelected('terrorism'),
+                    mlop: isRiskCoverSelected('mlop'),
+                },
+
+                discounts: form.discounts,
+
+                sumInsured: {
+                    ...sumInsuredData
+                },
+
+                sections: {
+                    section1: {
+                        ...fireAllied,
+                        earthquakeSI: totalSumInsured,
+                        stfiSI: totalSumInsured,
+                        terrorismSI: isRiskCoverSelected('terrorism') ? totalSumInsured : "0"
+                    },
+
+                    section2: {
+                        ...businessInterruptionData,
+                        terrorismSI: isRiskCoverSelected('terrorism') ? businessInterruptionData.terrorismSI : "0"
+                    },
+
+                    section3A: {
+                        ...machineryData
+                    },
+
+                    section3B: {
+                        ...mlopData,
+                        mlopSI: isRiskCoverSelected('mlop') ? mlopData.mlopSI : '0'
+                    }
+                }
+            };
+
+            console.log("updatedForm", updatedForm);
+
+            const response = await calculatIARIndurance(updatedForm);
+            setResult(response.data?.data)
+            console.log("response", response);
+
+        } catch (error) {
+            console.log("error?.response?.data?.message", error?.response?.data);
+            Alert.alert(
+                "Error",
+                error?.response?.data?.message || "Something went wrong"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
 
     return (
         <SafeAreaView>
@@ -233,13 +263,11 @@ const IARCalculatorScreen = () => {
                     style={{ flex: 1 }}
                 >
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
-                        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
-                        </TouchableOpacity> */}
                         <View style={{ gap: 12 }}>
                             <View style={{ width: '100%', alignItems: 'center', }}>
                                 <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.6, height: width * 0.3, }} />
                             </View>
+                            {/* customer detail */}
                             <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -277,24 +305,24 @@ const IARCalculatorScreen = () => {
                                 </View>
                             </View>
 
-
+                            {/* optionalCovers */}
                             <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, rickCover: !prev.rickCover }))}>
+                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, optionalCovers: !prev.optionalCovers }))}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                         <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
                                             <IconComponent icon={icons.shield} tintColor={color.white} size={18} />
                                         </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Rick Cover </Text>
+                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Optional Covers </Text>
                                     </View>
 
                                     {
-                                        expanded.rickCover ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                        expanded.optionalCovers ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
                                             : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
                                     }
                                 </TouchableOpacity>
 
 
-                                <View style={{ display: expanded.rickCover ? 'flex' : 'none', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                <View style={{ display: expanded.optionalCovers ? 'flex' : 'none', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
 
                                     {
                                         riskCover.map((item, index) => (
@@ -312,6 +340,7 @@ const IARCalculatorScreen = () => {
                                 </View>
                             </View>
 
+                            {/* dicount */}
                             <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, discounts: !prev.discounts }))}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -333,7 +362,7 @@ const IARCalculatorScreen = () => {
                                 </View>
                             </View>
 
-
+                            {/* Sum Insured */}
                             <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
 
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, sumInsured: !prev.sumInsured }))}>
@@ -351,35 +380,57 @@ const IARCalculatorScreen = () => {
                                 </TouchableOpacity>
 
                                 <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sumInsured.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={sumInsuredData.buildingSI} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }}
+                                        onChangeText={(text) => {
+                                            handleChangeText('buildingSI', text);
+                                            handleFireAliedChangeText('buildingSI', text);
+                                        }}
+                                    />
+
+                                    <InputField value={sumInsuredData.plantAndMachinerySI}
+                                        keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }}
+                                        onChangeText={(text) => {
+                                            handleChangeText('plantAndMachinerySI', text);
+                                            handleFireAliedChangeText('plantAndMachinerySI', text);
+                                            setMachineryData((prev) => ({
+                                                ...prev,
+                                                machineryBreakdownSI: text,
+                                            }));
+                                        }} />
+
+
+                                    <InputField value={sumInsuredData.stockSI}
+                                        keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }}
+                                        onChangeText={(text) => {
+                                            handleChangeText('stockSI', text)
+                                            handleFireAliedChangeText('stockSI', text);
+                                        }}
+
+                                    />
+
+                                    <InputField value={sumInsuredData.furnitureFixturesFittingsSI}
+                                        keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }}
+                                        onChangeText={(text) => {
+                                            handleChangeText('furnitureFixturesFittingsSI', text);
+                                            handleFireAliedChangeText('furnitureFixturesFittingsSI', text);
+                                        }}
+                                    />
+
+                                    <InputField value={sumInsuredData.otherContentsSI}
+                                        keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }}
+                                        onChangeText={(text) => {
+                                            handleChangeText('otherContentsSI', text);
+                                            handleFireAliedChangeText('otherContentsSI', text);
+                                        }}
+                                    />
+
+                                    <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                 </View>
                             </View>
 
-                            {/* <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, sumInsured: !prev.sumInsured }))}>
-                            <Text style={{ fontSize: 14, color: '#fff' }}> Sum Insured</Text>
-                            {
-                                expanded.sumInsured ? <IconComponent icon={icons.uparrow} size={18} tintColor="#fff" />
-                                    : <IconComponent icon={icons.downarrow} size={18} tintColor="#fff" />
-                            }
-                        </TouchableOpacity>
-
-                        <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured?.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sumInsured?.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                        </View>
-                    </GlassCard> */}
 
 
+                            {/* Fire & Allied Perils */}
                             <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
 
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, fireAllied: !prev.fireAllied }))}>
@@ -397,39 +448,19 @@ const IARCalculatorScreen = () => {
                                 </TouchableOpacity>
 
                                 <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                    <InputField value={fireAllied.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={fireAllied.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={fireAllied.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={fireAllied.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={fireAllied.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField value={totalSumInsured} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                                 </View>
                             </View>
 
-                            {/* <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, fireAllied: !prev.fireAllied }))}>
-                            <Text style={{ fontSize: 14, color: '#fff' }}> Fire & Allied Perils</Text>
-                            {
-                                expanded.fireAllied ? <IconComponent icon={icons.uparrow} size={18} tintColor="#fff" />
-                                    : <IconComponent icon={icons.downarrow} size={18} tintColor="#fff" />
-                            }
-                        </TouchableOpacity>
-                        <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                            <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
-                            <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
-                            {terrorism && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
-                        </View>
-                    </GlassCard> */}
-
-
-                            {isRiskCoverSelected('business_interruption') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+                            {/* business interruption */}
+                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
 
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, businessInterruption: !prev.businessInterruption }))}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -447,29 +478,27 @@ const IARCalculatorScreen = () => {
 
                                 <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
                                     <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                        <InputField onEndEditing={() => handleSectionChange("section2", "terrorismSI", form.sections.section2.businessInterruptionSI)} value={form.sections.section2.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section2", "businessInterruptionSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }} />
-                                        {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section2.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                        <InputField value={businessInterruptionData.businessInterruptionSI}
+                                            keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }}
+                                            onChangeText={(text) => {
+                                                handleBusinessInterruptionChange("businessInterruptionSI", text);
+                                                handleBusinessInterruptionChange("terrorismSI", text);
+                                                setMlopData((prev) => ({
+                                                    ...prev,
+                                                    mlopSI: text,
+                                                }))
+
+                                            }}
+                                        />
+
+
+                                        {riskCover.find(c => c.key == 'terrorism').selected &&
+                                            <InputField value={businessInterruptionData.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                                     </View>
                                 </View>
                             </View>
-                            }
 
-                            {/* <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, businessInterruption: !prev.businessInterruption }))}>
-                            <Text style={{ fontSize: 14, color: '#fff' }}> Business Interruption</Text>
-                            {
-                                expanded.businessInterruption ? <IconComponent icon={icons.uparrow} size={18} tintColor="#fff" />
-                                    : <IconComponent icon={icons.downarrow} size={18} tintColor="#fff" />
-                            }
-                        </TouchableOpacity>
-                        <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                            <InputField onEndEditing={() => handleSectionChange("section2", "terrorismSI", form.sections.section2.businessInterruptionSI)} value={form.sections.section2.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section2", "businessInterruptionSI", text)} placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }} />
-                            {terrorism && <InputField value={form.sections.section2.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
-                        </View>
-                    </GlassCard> */}
-
-
-                            {isRiskCoverSelected('machinery_breakdown') && (<View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
 
                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, machineryBreakdown: !prev.machineryBreakdown }))}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -486,23 +515,9 @@ const IARCalculatorScreen = () => {
                                 </TouchableOpacity>
 
                                 <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField editable={false} value={machineryData.machineryBreakdownSI} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                 </View>
-                            </View>)}
-
-                            {/* <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, machineryBreakdown: !prev.machineryBreakdown }))}>
-                            <Text style={{ fontSize: 14, color: '#fff' }}> Machinery Breakdown</Text>
-                            {
-                                expanded.machineryBreakdown ? <IconComponent icon={icons.uparrow} size={18} tintColor="#fff" />
-                                    : <IconComponent icon={icons.downarrow} size={18} tintColor="#fff" />
-                            }
-                        </TouchableOpacity>
-                        <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                            <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                        </View>
-                    </GlassCard> */}
-
+                            </View>
 
                             {isRiskCoverSelected('mlop') && (<View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
 
@@ -521,34 +536,11 @@ const IARCalculatorScreen = () => {
                                 </TouchableOpacity>
 
                                 <View style={{ display: expanded.mlop ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section3B.mlopSI} onChangeText={(text) => handleSectionChange("section3B", "mlopSI", text)} keyboardType='numeric' placeholder='0' label={'Mlop Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                    <InputField editable={false} value={mlopData.mlopSI} keyboardType='numeric' placeholder='0' label={'Mlop Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                 </View>
                             </View>)}
 
-                            {/* <GlassCard innerStyle={{ padding: 16, gap: 10 }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onPress={() => setExpanded(prev => ({ ...prev, mlop: !prev.mlop }))}>
-                            <Text style={{ fontSize: 14, color: '#fff' }}> Mlop</Text>
-                            {
-                                expanded.mlop ? <IconComponent icon={icons.uparrow} size={18} tintColor="#fff" />
-                                    : <IconComponent icon={icons.downarrow} size={18} tintColor="#fff" />
-                            }
-                        </TouchableOpacity>
-                        <View style={{ display: expanded.mlop ? 'flex' : 'none', marginTop: 10 }}>
-                            <InputField value={form.sections.section3B.mlopSI} onChangeText={(text) => handleSectionChange("section3B", "mlopSI", text)} keyboardType='numeric' placeholder='0' label={'Mole Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                        </View>
-                    </GlassCard> */}
-
-                            <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleIARCalculate} />
-                            {/* <TouchableOpacity
-                        style={[styles.calcBtn, loading && styles.calcBtnDisabled]}
-                        onPress={handleIARCalculate}
-                        activeOpacity={0.85}
-                        disabled={loading}
-                    >
-                        <Text style={styles.calcBtnText}>
-                            {loading ? 'CALCULATING...' : 'CALCULATE PREMIUM'}
-                        </Text>
-                    </TouchableOpacity> */}
+                            <CustomButton disabled={totalSumInsured > 0 ? false: true} label='CALCULATE PREMIUM' loading={loading} onPress={handleIARCalculate} />
 
                             {result && <ResultCardComponent heading='IAR' value={result?.summary?.grossPremium || 0.00}
                                 children={
@@ -562,6 +554,44 @@ const IARCalculatorScreen = () => {
                                             <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>GST</Text>
                                             <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.summary?.gst || 0}</Text>
                                         </View>
+
+                                        {viewButton && <TouchableOpacity hitSlop={40} onPress={() => setViewButton(false)} style={{ paddingBottom:6, paddingRight:10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                                            <Text style={{ color: color.primaryBlueDark, textDecorationLine:'underline' }}>View Rates</Text>
+                                        </TouchableOpacity>}
+
+                                        {!viewButton && <View style={{ gap: 10, }}>
+                                            <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Rates</Text>
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>IIB Rate</Text>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.iibRate}</Text>
+                                            </View>
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Earthquake Rate</Text>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.earthquakeRate}</Text>
+                                            </View>
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>STFI Rate</Text>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.stfiRate}</Text>
+                                            </View>
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Terrorism Rate</Text>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.terrorismRate}</Text>
+                                            </View>
+
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Final Fire Rate</Text>
+                                                <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.finalFireRate}</Text>
+                                            </View>
+
+                                        </View>}
+
+                                          {!viewButton && <TouchableOpacity hitSlop={40} onPress={() => setViewButton(true)} style={{ paddingBottom:6, paddingRight:10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                                            <Text style={{ color: color.primaryBlueDark , textDecorationLine:'underline'}}>Hide Rates</Text>
+                                        </TouchableOpacity>}
                                     </View>
                                 }
                             />}
