@@ -9,6 +9,7 @@ import { color } from '../../utility/color';
 import { globalStyles } from '../../utility/globalStyles'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+
 const MainLayout = () => {
   const [activeScreen, setActiveScreen] = useState('home');
 
@@ -36,16 +37,18 @@ const MainLayout = () => {
   };
 
   return (
+    <View style={{ flex: 1, backgroundColor: color.screenBackground}}>
     <SafeAreaView>
       <View style={globalStyles.mainContainer}>
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           {renderScreen()}
         </ScrollView>
-        <View style={{ position: 'absolute', bottom: 0, width: '100%' }}>
+        <View style={{ position: 'absolute', bottom: 0, width: '100%',}}>
           <BottomTabBar onButtonClick={handleTabPress} active={activeScreen} />
         </View>
       </View>
     </SafeAreaView>
+    </View>
 
   )
 }

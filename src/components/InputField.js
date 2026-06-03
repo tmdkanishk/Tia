@@ -71,7 +71,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
+<<<<<<< HEAD
     color: color.mainText
+=======
+    color:color.mainText,
+    paddingVertical:10
+>>>>>>> 80ebb74 (updated in ios)
   },
 
   eyeBtn: {

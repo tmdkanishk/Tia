@@ -1,4 +1,4 @@
-import { View, Text, KeyboardAvoidingView, ScrollView, Alert, Image, Dimensions } from 'react-native'
+import { View, Text, KeyboardAvoidingView, ScrollView, Alert, Image, Dimensions, StatusBar } from 'react-native'
 import React, { useState } from 'react'
 import { globalStyles } from '../../utility/globalStyles'
 import { IconComponent, icons } from '../../components/IconComponent';
@@ -124,6 +124,7 @@ const LoginScreen = () => {
 
 
     return (
+        <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
             <View style={globalStyles.newContainer}>
                 <KeyboardAvoidingView
@@ -183,6 +184,7 @@ const LoginScreen = () => {
                 </KeyboardAvoidingView>
             </View>
         </SafeAreaView>
+        </View>
     )
 }
 
