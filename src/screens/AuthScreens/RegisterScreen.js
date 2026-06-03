@@ -125,6 +125,7 @@ const RegisterScreen = () => {
 
 
     return (
+        <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
             <View style={globalStyles.newContainer}>
                 <KeyboardAvoidingView
@@ -214,6 +215,7 @@ const RegisterScreen = () => {
                 </KeyboardAvoidingView>
             </View >
         </SafeAreaView>
+        </View>
 
     )
 }

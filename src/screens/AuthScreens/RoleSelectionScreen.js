@@ -56,6 +56,7 @@ const RoleSelectionScreen = () => {
 
 
     return (
+        <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
             <View style={globalStyles.newContainer}>
                 <ScrollView showsVerticalScrollIndicator={false}>
@@ -101,6 +102,7 @@ const RoleSelectionScreen = () => {
                 </ScrollView>
             </View>
         </SafeAreaView>
+        </View>
     )
 }
 

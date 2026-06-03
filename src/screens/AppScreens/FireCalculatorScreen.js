@@ -100,6 +100,7 @@ const FireCalculatorScreen = () => {
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
     <SafeAreaView>
       <View style={globalStyles.newContainer}>
         <KeyboardAvoidingView
@@ -265,6 +266,7 @@ const FireCalculatorScreen = () => {
         </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
+    </View>
   )
 }
 

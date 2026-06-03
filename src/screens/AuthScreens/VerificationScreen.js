@@ -91,6 +91,7 @@ const VerificationScreen = ({ route }) => {
 
 
     return (
+         <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
             <View style={globalStyles.newContainer}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -124,6 +125,7 @@ const VerificationScreen = ({ route }) => {
 
             </View>
         </SafeAreaView>
+        </View>
     )
 }
 

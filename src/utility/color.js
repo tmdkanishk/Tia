@@ -15,7 +15,7 @@ export const color = {
     serface: "#dcdcde",
 
     cardBackground: "#FFFFFF",
-    screenBackground: "#F8FAFC",
+    screenBackground: "#FFFFFF",
 
     disabledToggle: "#D1D5DB",
 

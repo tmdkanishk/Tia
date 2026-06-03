@@ -10,6 +10,7 @@ const VerifiedAccountSuccess = () => {
     const navigation = useNavigation();
     const { width } = Dimensions.get('window');
     return (
+        <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
             <View style={globalStyles.newContainer}>
                 <View style={{ alignItems: 'center', gap: 10 }}>
@@ -28,6 +29,7 @@ const VerifiedAccountSuccess = () => {
                 </View>
             </View>
         </SafeAreaView>
+        </View>
     )
 }
 
