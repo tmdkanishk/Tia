@@ -85,25 +85,25 @@ export const riskIARCovers = [
     selected: true,
     icon: icons.threat
   },
-  {
-    key: "burglary",
-    label: "Burglary",
-    selected: true,
-    icon: icons.thief
-  },
-  {
-    key: "machinery_breakdown",
-    label: "Machinery Breakdown",
-    selected: true,
-    icon: icons.process
-  },
+  // {
+  //   key: "burglary",
+  //   label: "Burglary",
+  //   selected: true,
+  //   icon: icons.thief
+  // },
+  // {
+  //   key: "machinery_breakdown",
+  //   label: "Machinery Breakdown",
+  //   selected: true,
+  //   icon: icons.process
+  // },
 
-  {
-    key: "business_interruption",
-    label: "Business Interruption",
-    selected: true,
-    icon: icons.businessins
-  },
+  // {
+  //   key: "business_interruption",
+  //   label: "Business Interruption",
+  //   selected: true,
+  //   icon: icons.businessins
+  // },
   {
     key: "mlop",
     label: "Mlop",

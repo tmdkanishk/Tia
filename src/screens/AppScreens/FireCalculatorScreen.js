@@ -1,4 +1,4 @@
-import { View, Text, KeyboardAvoidingView, ScrollView, Image, Dimensions, TouchableOpacity, Pressable } from 'react-native'
+import { View, Text, KeyboardAvoidingView, ScrollView, Image, Dimensions, TouchableOpacity, Pressable, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { globalStyles } from '../../utility/globalStyles'
 import { useNavigation } from '@react-navigation/native'
@@ -89,6 +89,10 @@ const FireCalculatorScreen = () => {
       setResult(response.data?.data);
 
     } catch (error) {
+      Alert.alert(
+        "Error",
+        error?.response?.data?.message || "Something went wrong"
+      );
       console.log("error", error.response.data);
     } finally {
       setLoading(false);
@@ -156,7 +160,7 @@ const FireCalculatorScreen = () => {
                     <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
                       <IconComponent icon={icons.shield} tintColor={color.white} size={18} />
                     </View>
-                    <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Rick Cover</Text>
+                    <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Optional Covers</Text>
                   </View>
 
                   {

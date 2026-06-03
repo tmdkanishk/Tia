@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 import { color } from '../utility/color';
 
-const InputField = ({ icon, placeholder, label, secureTextEntry, iconStyle, containerInputStyle, error, ...props }) => {
+const InputField = ({ icon, placeholder, label, secureTextEntry, iconStyle, containerInputStyle, error, editable = true, ...props }) => {
 
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
     <View>
       {label && <Text style={{ fontSize: 14, color: color.mainText, marginBottom: 8, fontWeight: '600' }}>{label}</Text>}
-      <View style={[styles.inputRow, containerInputStyle, error && styles.inputRowError]}>
+      <View style={[styles.inputRow, containerInputStyle, error && styles.inputRowError, !editable && styles.disabledInputRow,]}>
         {/* Left Icon */}
         {icon && <Image source={icon} style={[styles.inputIcon, iconStyle]} />}
         <TextInput
@@ -17,11 +17,9 @@ const InputField = ({ icon, placeholder, label, secureTextEntry, iconStyle, cont
           placeholder={placeholder}
           placeholderTextColor="#999"
           secureTextEntry={hidden}
+          editable={editable}
           {...props}
-        
-         
-          
-          
+
         />
         {/* Eye Icon */}
         {secureTextEntry && (
@@ -55,6 +53,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderWidth: 1,
     borderColor: color.borderColor,
+    marginBottom:10
   },
   inputRowError: {
     borderColor: '#FF3B30',
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    color:color.mainText
+    color: color.mainText
   },
 
   eyeBtn: {
@@ -91,6 +90,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 10,
     marginLeft: 4,
+  },
+
+  disabledInputRow: {
+    backgroundColor: '#F5F5F5', // disabled background
+    // opacity: 0.8,
+    borderWidth:0
   },
 });
 
