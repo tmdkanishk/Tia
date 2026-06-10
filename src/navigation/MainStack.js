@@ -7,13 +7,15 @@ import MainLayout from '../screens/Layout/MainLayout';
 import BusinessCalculatorScreen from '../screens/AppScreens/BusinessCalculatorScreen';
 import IARCalculatorScreen from '../screens/AppScreens/IARCalculatorScreen';
 import FireCalculatorScreen from '../screens/AppScreens/FireCalculatorScreen'
+import AddonScreen from '../screens/AppScreens/AddonScreen'
+
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
     return (
         <>
-            <StatusBar backgroundColor={'#FFFFFF'} barStyle="dark-content"/>
+            <StatusBar backgroundColor={'#FFFFFF'} barStyle="dark-content" />
             <Stack.Navigator
                 screenOptions={{ headerShown: false }}
                 initialRouteName='MainLayout'
@@ -24,11 +26,10 @@ const MainStack = () => {
                 <Stack.Screen name="BusinessCalculator" component={BusinessCalculatorScreen} />
                 <Stack.Screen name="IARCalculator" component={IARCalculatorScreen} />
                 <Stack.Screen name="FireCalculator" component={FireCalculatorScreen} />
-
-
+                <Stack.Screen name="Addon" component={AddonScreen} />
 
             </Stack.Navigator>
-            </>
+        </>
     )
 }
 

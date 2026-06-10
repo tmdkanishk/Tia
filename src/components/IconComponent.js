@@ -39,6 +39,12 @@ import service from '../assets/images/service.png'
 import logout from '../assets/images/logout.png'
 import round from '../assets/images/round.png'
 import logoutf from '../assets/images/logoutf.png'
+import exlamation from '../assets/images/exlamation.png'
+import dashbin from '../assets/images/dashbin.png'
+import plugin from '../assets/images/plugin.png'
+
+
+
 
 
 
@@ -81,7 +87,11 @@ export const icons = {
     service: service,
     logout: logout,
     round: round,
-    logoutf: logoutf
+    logoutf: logoutf,
+    exlamation: exlamation,
+    delete: dashbin,
+    plugin: plugin
+
 
 
 }
