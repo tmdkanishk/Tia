@@ -18,9 +18,9 @@ import SplashScreen from 'react-native-splash-screen';
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
-  useEffect(() => {
-    SplashScreen.hide();
-  }, [])
+  // useEffect(() => {
+  //   SplashScreen.hide();
+  // }, [])
 
   return (
 

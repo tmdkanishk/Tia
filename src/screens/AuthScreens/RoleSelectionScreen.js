@@ -58,9 +58,9 @@ const RoleSelectionScreen = () => {
     return (
         <View style={{ flex: 1, backgroundColor:'#fff' }}>
         <SafeAreaView>
-            <View style={globalStyles.newContainer}>
+            <View style={[globalStyles.newContainer, {backgroundColor:color.screenBackground}]}>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <View style={{ gap: 20 }}>
+                    <View style={{ gap: 20, paddingHorizontal:12 }}>
                         <AuthScreenHeader />
                         {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
                         <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />

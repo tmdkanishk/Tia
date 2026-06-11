@@ -2,12 +2,13 @@ import { View, Text, ScrollView, StatusBar } from 'react-native'
 import React, { useState } from 'react'
 import BottomTabBar from '../../components/BottomTabBar'
 import HomeComponent from '../MainComponents/HomeComponent'
-import PoliciesComponent from '../MainComponents/PoliciesComponent'
+import QuotationsComponent from '../MainComponents/QuotationsComponent'
 import ProfileComponent from '../MainComponents/ProfileComponent'
 import SupportComponent from '../MainComponents/SupportComponent'
 import { color } from '../../utility/color';
 import { globalStyles } from '../../utility/globalStyles'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import HeaderComponent from '../MainComponents/HeaderComponent'
 
 
 const MainLayout = () => {
@@ -22,8 +23,8 @@ const MainLayout = () => {
       case 'home':
         return <HomeComponent />;
 
-      case 'policies':
-        return <PoliciesComponent />;
+      case 'quotations':
+        return <QuotationsComponent />;
 
       case 'profile':
         return <ProfileComponent />;
@@ -37,17 +38,18 @@ const MainLayout = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: color.screenBackground}}>
-    <SafeAreaView>
-      <View style={globalStyles.mainContainer}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
+      <SafeAreaView>
+        <View style={globalStyles.mainContainer}>
+          <View style={{ paddingHorizontal: 12, height:'100%' }}>
+          <HeaderComponent />
           {renderScreen()}
-        </ScrollView>
-        <View style={{ position: 'absolute', bottom: 0, width: '100%',}}>
-          <BottomTabBar onButtonClick={handleTabPress} active={activeScreen} />
+          </View>
+          <View style={{ position: 'absolute', bottom: 0, width: '100%', }}>
+            <BottomTabBar onButtonClick={handleTabPress} active={activeScreen} />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
     </View>
 
   )

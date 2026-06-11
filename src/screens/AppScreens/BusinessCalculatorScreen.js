@@ -11,6 +11,7 @@ import { riskCovers } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
 import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import BackHeader from '../../components/BackHeader'
 
 
 const BusinessCalculatorScreen = () => {
@@ -335,460 +336,457 @@ const BusinessCalculatorScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: color.screenBackground}}>
-        <SafeAreaView>
-            <View style={globalStyles.newContainer}>
-                <KeyboardAvoidingView
-                    behavior='padding'
-                    style={{ flex: 1 }}
-                >
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
-                        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
-                        </TouchableOpacity> */}
-                        <View style={{ gap: 12 }}>
-                            <View style={{ width: '100%', alignItems: 'center', }}>
-                                <Image source={require('../../assets/logo/header.png')} style={{ width: width * 0.6, height: width * 0.3, }} />
-                            </View>
+        <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
+            <SafeAreaView>
+                <View style={globalStyles.newContainer}>
+                    <BackHeader title={'Business Calculator'} subTitle={'Calculate premium for Business Insurance policies.'} />
+                    <KeyboardAvoidingView
+                        behavior='padding'
+                        style={{ flex: 1 }}
+                    >
+                        <View style={globalStyles.innerContainer}>
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
 
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.user} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Customer Details</Text>
-                                    </View>
+                                <View style={{ gap: 12, paddingHorizontal: 12, marginTop: 12 }}>
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, insuredDetails: !prev.insuredDetails }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.user} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Customer Details</Text>
+                                            </View>
 
-                                    {
-                                        expanded.insuredDetails ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
+                                            {
+                                                expanded.insuredDetails ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
 
-                                <View style={{ display: expanded.insuredDetails ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.customerDetails?.customerName} onChangeText={(text) => handleChange("customerDetails", "customerName", text)} placeholder='Customer Name' label={'Customer Name'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.customerDetails?.address} onChangeText={(text) => handleChange("customerDetails", "address", text)} placeholder='Address' label={'Address'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        <View style={{ display: expanded.insuredDetails ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.customerDetails?.customerName} onChangeText={(text) => handleChange("customerDetails", "customerName", text)} placeholder='Customer Name' label={'Customer Name'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.customerDetails?.address} onChangeText={(text) => handleChange("customerDetails", "address", text)} placeholder='Address' label={'Address'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
 
-                                    <View style={{ gap: 10, marginBottom: 10 }}>
-                                        <Text style={{ color: color.mainText, fontWeight: '600' }}>Risk Code</Text>
-                                        <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground, }}>
-                                            <Text style={{ color: form.customerDetails.riskCode ? color.mainText : color.secondaryText }}>{form.customerDetails.riskCode || 'Risk Code'}</Text>
-                                        </Pressable>
-                                    </View>
-
-                                    <View style={{ gap: 10, marginBottom: 10 }}>
-                                        <Text style={{ color: color.mainText, fontWeight: '600' }}>Occupancy</Text>
-                                        <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground, }}>
-                                            <Text style={{ color: form.customerDetails.occupancy ? color.mainText : color.secondaryText }}>{form.customerDetails.occupancy || 'Occupancy'}</Text>
-                                        </Pressable>
-                                    </View>
-                                    <InputField value={form.customerDetails?.description} onChangeText={(text) => handleChange("customerDetails", "description", text)} placeholder='Description' label={'Description'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>
-
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, rickCover: !prev.rickCover }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.shield} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Optional Covers</Text>
-                                    </View>
-
-                                    {
-                                        expanded.rickCover ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-
-                                <View style={{ display: expanded.rickCover ? 'flex' : 'none', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-
-                                    {
-                                        riskCover.map((item, index) => (
-                                            <View key={index} style={{ width: width * 0.43, borderWidth: 1, padding: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 8, borderColor: color.borderColor }}>
-                                                <IconComponent icon={item?.icon} size={24} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
-                                                <Text style={{ width: '55%', fontWeight: '400', color: item.selected ? color.mainText : color.secondaryText }}>
-                                                    {item.label}
-                                                </Text>
-                                                <Pressable hitSlop={40} onPress={() => toggleRiskCover(item.key)}>
-                                                    <IconComponent icon={item.selected ? icons.switchright : icons.switchleft} size={30} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
+                                            <View style={{ gap: 10, marginBottom: 10 }}>
+                                                <Text style={{ color: color.mainText, fontWeight: '600' }}>Risk Code</Text>
+                                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground, }}>
+                                                    <Text style={{ color: form.customerDetails.riskCode ? color.mainText : color.secondaryText }}>{form.customerDetails.riskCode || 'Risk Code'}</Text>
                                                 </Pressable>
                                             </View>
-                                        ))
-                                    }
-                                </View>
-                            </View>
 
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, discounts: !prev.discounts }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.tag} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Discounts</Text>
-                                    </View>
-
-                                    {
-                                        expanded.discounts ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-
-
-                                <View style={{ display: expanded.discounts ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.discounts?.iibDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "iibDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'IIB Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.discounts?.natcatDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "natcatDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'Natcat Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>
-
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, sumInsured: !prev.sumInsured }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.indured} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Sum Insured </Text>
-                                    </View>
-
-                                    {
-                                        expanded.sumInsured ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sumInsured.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>
-
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, fireAllied: !prev.fireAllied }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.fire} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Fire & Allied Perils </Text>
-                                    </View>
-
-                                    {
-                                        expanded.fireAllied ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
-                                </View>
-                            </View>
-
-
-                            <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, burglaryHousebreaking: !prev.burglaryHousebreaking }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.housefire} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Burglary & Housebreaking with theft & RSMD </Text>
-                                    </View>
-
-                                    {
-                                        expanded.burglaryHousebreaking ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.burglaryHousebreaking ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section2.totalBurglarySI} editable={false} placeholder='0' label={'Burglary & Housebreaking with theft & RSMD'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section2.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section2.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section2.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section2.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>
-
-                            {isRiskCoverSelected('machinery_breakdown') && (<View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, machineryBreakdown: !prev.machineryBreakdown }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.process} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}>Machinery Breakdown</Text>
-                                    </View>
-
-                                    {
-                                        expanded.machineryBreakdown ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section3A.remarks} onChangeText={(text) => handleSectionChange("section3A", "remarks", text)} placeholder='eg. Remarks' label={'Remarks'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>)}
-
-
-
-                            {isRiskCoverSelected('boiler_pressure_plant') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, boilerPressure: !prev.boilerPressure }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.boiler} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}>Boiler Pressure</Text>
-                                    </View>
-
-                                    {
-                                        expanded.boilerPressure ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.boilerPressure ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section3B.boilerPressurePlantSI} onChangeText={(text) => handleSectionChange("section3B", "boilerPressurePlantSI", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section3B.ownersSurroundingPropertySI} onChangeText={(text) => handleSectionChange("section3B", "ownersSurroundingPropertySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section3B.thirdPartyLiabilitySI} onChangeText={(text) => handleSectionChange("section3B", "thirdPartyLiabilitySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-                            {isRiskCoverSelected('electronic_equipment') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, electronicEquipment: !prev.electronicEquipment }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.electrical} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}> Electronic Equipment</Text>
-                                    </View>
-
-                                    {
-                                        expanded.electronicEquipment ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.electronicEquipment ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section4.electronicEquipmentSI} onChangeText={(text) => handleSectionChange("section4", "electronicEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-
-                            </View>}
-
-
-
-                            {isRiskCoverSelected('portable_equipment') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, portable: !prev.portable }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.devices} tintColor={color.white} size={20} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Portable Computer/Mobile Phone/Laptop etc</Text>
-                                    </View>
-
-                                    {
-                                        expanded.portable ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.portable ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section5.portableEquipmentSI} onChangeText={(text) => handleSectionChange("section5", "portableEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-
-
-                            {isRiskCoverSelected('money_insurance') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, money: !prev.money }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.money} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Money</Text>
-                                    </View>
-
-                                    {
-                                        expanded.money ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-
-                                <View style={{ display: expanded.money ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section6.moneyInTransitSI} onChangeText={(text) => handleSectionChange("section6", "moneyInTransitSI", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section6.moneyInCounterSI} onChangeText={(text) => handleSectionChange("section6", "moneyInCounterSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section6.moneyInSafeSI} onChangeText={(text) => handleSectionChange("section6", "moneyInSafeSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-
-
-                            {isRiskCoverSelected('fidelity_guarantee') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, fidelityGuarantee: !prev.fidelityGuarantee }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.industry} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Fidelity Guarantee</Text>
-                                    </View>
-
-                                    {
-                                        expanded.fidelityGuarantee ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.fidelityGuarantee ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section7.numberOfEmployees} onChangeText={(text) => { "section7", "numberOfEmployees", text }} keyboardType='numeric' placeholder='0' label={'No of Employees'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section7.perEmployeeSI} onChangeText={(text) => { "section7", "perEmployeeSI", text }} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-
-
-                            {isRiskCoverSelected('personal_accident') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, personalAccident: !prev.personalAccident }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.car} tintColor={color.white} size={22} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}> Personal Accident</Text>
-                                    </View>
-
-                                    {
-                                        expanded.personalAccident ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.personalAccident ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section8.tableA_DeathBenefitOnlySI} onChangeText={(text) => handleSectionChange("section8", "tableA_DeathBenefitOnlySI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section8.tableB_DeathPlusPTDSI} onChangeText={(text) => handleSectionChange("section8", "tableB_DeathPlusPTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section8.tableC_DeathPTDPPDSI} onChangeText={(text) => handleSectionChange("section8", "tableC_DeathPTDPPDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section8.tableD_DeathPTDPPDTTDSI} onChangeText={(text) => handleSectionChange("section8", "tableD_DeathPTDPPDTTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section8.totalEmployees} onChangeText={(text) => handleSectionChange("section8", "totalEmployees", text)} keyboardType='numeric' placeholder='0' label={'Total Employee'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-
-                            {isRiskCoverSelected('business_interruption') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, businessInterruption: !prev.businessInterruption }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.businessins} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Business Interruption</Text>
-                                    </View>
-
-                                    {
-                                        expanded.businessInterruption ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section9.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section9", "grossProfitSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                    <InputField value={form.sections.section9.businessInterruptionTerrorismSI} onChangeText={(text) => handleSectionChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>
-                            }
-                            {isRiskCoverSelected('public_liability') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, publicLiability: !prev.publicLiability }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.mansafe} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Public Liability - Liability Insurance</Text>
-                                    </View>
-
-                                    {
-                                        expanded.publicLiability ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-                                <View style={{ display: expanded.publicLiability ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section10.publicLiabilitySI} onChangeText={(text) => handleSectionChange("section10", "publicLiabilitySI", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-
-                            {isRiskCoverSelected('plate_glass') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
-
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, plateGlassInsurance: !prev.plateGlassInsurance }))}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
-                                            <IconComponent icon={icons.protection} tintColor={color.white} size={18} />
-                                        </View>
-                                        <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Plate Glass Insurance</Text>
-                                    </View>
-
-                                    {
-                                        expanded.plateGlassInsurance ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
-                                            : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
-                                    }
-                                </TouchableOpacity>
-
-
-                                <View style={{ display: expanded.plateGlassInsurance ? 'flex' : 'none', marginTop: 10 }}>
-                                    <InputField value={form.sections.section11.plateGlassSI} onChangeText={(text) => handleSectionChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                </View>
-                            </View>}
-
-                            <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
-
-                            {result && <ResultCardComponent heading='Business' value={result?.premiumSummary?.grossPremium || 0.00}
-                                children={
-                                    <View style={{ gap: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
-                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>Net Premium</Text>
-                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premiumSummary?.netPremium || 0}</Text>
-                                        </View>
-
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
-                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>GST</Text>
-                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premiumSummary?.gst || 0}</Text>
+                                            <View style={{ gap: 10, marginBottom: 10 }}>
+                                                <Text style={{ color: color.mainText, fontWeight: '600' }}>Occupancy</Text>
+                                                <Pressable onPress={() => setModalVisible(true)} style={{ borderWidth: 1, padding: 16, borderRadius: 12, borderColor: color.borderColor, backgroundColor: color.cardBackground, }}>
+                                                    <Text style={{ color: form.customerDetails.occupancy ? color.mainText : color.secondaryText }}>{form.customerDetails.occupancy || 'Occupancy'}</Text>
+                                                </Pressable>
+                                            </View>
+                                            <InputField value={form.customerDetails?.description} onChangeText={(text) => handleChange("customerDetails", "description", text)} placeholder='Description' label={'Description'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
-                                }
-                            />}
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, rickCover: !prev.rickCover }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.shield} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Optional Covers</Text>
+                                            </View>
+
+                                            {
+                                                expanded.rickCover ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+
+                                        <View style={{ display: expanded.rickCover ? 'flex' : 'none', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+
+                                            {
+                                                riskCover.map((item, index) => (
+                                                    <View key={index} style={{ width: width * 0.43, borderWidth: 1, padding: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 8, borderColor: color.borderColor }}>
+                                                        <IconComponent icon={item?.icon} size={24} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
+                                                        <Text style={{ width: '55%', fontWeight: '400', color: item.selected ? color.mainText : color.secondaryText }}>
+                                                            {item.label}
+                                                        </Text>
+                                                        <Pressable hitSlop={40} onPress={() => toggleRiskCover(item.key)}>
+                                                            <IconComponent icon={item.selected ? icons.switchright : icons.switchleft} size={30} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
+                                                        </Pressable>
+                                                    </View>
+                                                ))
+                                            }
+                                        </View>
+                                    </View>
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, discounts: !prev.discounts }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.tag} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Discounts</Text>
+                                            </View>
+
+                                            {
+                                                expanded.discounts ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
 
 
 
+                                        <View style={{ display: expanded.discounts ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.discounts?.iibDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "iibDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'IIB Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.discounts?.natcatDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "natcatDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'Natcat Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, sumInsured: !prev.sumInsured }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.indured} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Sum Insured </Text>
+                                            </View>
+
+                                            {
+                                                expanded.sumInsured ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sumInsured.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, fireAllied: !prev.fireAllied }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.fire} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Fire & Allied Perils </Text>
+                                            </View>
+
+                                            {
+                                                expanded.fireAllied ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                        </View>
+                                    </View>
+
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, burglaryHousebreaking: !prev.burglaryHousebreaking }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.housefire} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Burglary & Housebreaking with theft & RSMD </Text>
+                                            </View>
+
+                                            {
+                                                expanded.burglaryHousebreaking ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.burglaryHousebreaking ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section2.totalBurglarySI} editable={false} placeholder='0' label={'Burglary & Housebreaking with theft & RSMD'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section2.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section2.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section2.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section2.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>
+
+                                    {isRiskCoverSelected('machinery_breakdown') && (<View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, machineryBreakdown: !prev.machineryBreakdown }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.process} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}>Machinery Breakdown</Text>
+                                            </View>
+
+                                            {
+                                                expanded.machineryBreakdown ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section3A.remarks} onChangeText={(text) => handleSectionChange("section3A", "remarks", text)} placeholder='eg. Remarks' label={'Remarks'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>)}
+
+
+
+                                    {isRiskCoverSelected('boiler_pressure_plant') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, boilerPressure: !prev.boilerPressure }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.boiler} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}>Boiler Pressure</Text>
+                                            </View>
+
+                                            {
+                                                expanded.boilerPressure ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.boilerPressure ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section3B.boilerPressurePlantSI} onChangeText={(text) => handleSectionChange("section3B", "boilerPressurePlantSI", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section3B.ownersSurroundingPropertySI} onChangeText={(text) => handleSectionChange("section3B", "ownersSurroundingPropertySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section3B.thirdPartyLiabilitySI} onChangeText={(text) => handleSectionChange("section3B", "thirdPartyLiabilitySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+                                    {isRiskCoverSelected('electronic_equipment') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, electronicEquipment: !prev.electronicEquipment }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.electrical} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', }}> Electronic Equipment</Text>
+                                            </View>
+
+                                            {
+                                                expanded.electronicEquipment ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.electronicEquipment ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section4.electronicEquipmentSI} onChangeText={(text) => handleSectionChange("section4", "electronicEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+
+                                    </View>}
+
+
+
+                                    {isRiskCoverSelected('portable_equipment') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, portable: !prev.portable }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.devices} tintColor={color.white} size={20} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Portable Computer/Mobile Phone/Laptop etc</Text>
+                                            </View>
+
+                                            {
+                                                expanded.portable ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.portable ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section5.portableEquipmentSI} onChangeText={(text) => handleSectionChange("section5", "portableEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+
+
+                                    {isRiskCoverSelected('money_insurance') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, money: !prev.money }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.money} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Money</Text>
+                                            </View>
+
+                                            {
+                                                expanded.money ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+
+                                        <View style={{ display: expanded.money ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section6.moneyInTransitSI} onChangeText={(text) => handleSectionChange("section6", "moneyInTransitSI", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section6.moneyInCounterSI} onChangeText={(text) => handleSectionChange("section6", "moneyInCounterSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section6.moneyInSafeSI} onChangeText={(text) => handleSectionChange("section6", "moneyInSafeSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+
+
+                                    {isRiskCoverSelected('fidelity_guarantee') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, fidelityGuarantee: !prev.fidelityGuarantee }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.industry} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Fidelity Guarantee</Text>
+                                            </View>
+
+                                            {
+                                                expanded.fidelityGuarantee ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.fidelityGuarantee ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section7.numberOfEmployees} onChangeText={(text) => { "section7", "numberOfEmployees", text }} keyboardType='numeric' placeholder='0' label={'No of Employees'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section7.perEmployeeSI} onChangeText={(text) => { "section7", "perEmployeeSI", text }} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+
+
+                                    {isRiskCoverSelected('personal_accident') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, personalAccident: !prev.personalAccident }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.car} tintColor={color.white} size={22} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}> Personal Accident</Text>
+                                            </View>
+
+                                            {
+                                                expanded.personalAccident ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.personalAccident ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section8.tableA_DeathBenefitOnlySI} onChangeText={(text) => handleSectionChange("section8", "tableA_DeathBenefitOnlySI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section8.tableB_DeathPlusPTDSI} onChangeText={(text) => handleSectionChange("section8", "tableB_DeathPlusPTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section8.tableC_DeathPTDPPDSI} onChangeText={(text) => handleSectionChange("section8", "tableC_DeathPTDPPDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section8.tableD_DeathPTDPPDTTDSI} onChangeText={(text) => handleSectionChange("section8", "tableD_DeathPTDPPDTTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section8.totalEmployees} onChangeText={(text) => handleSectionChange("section8", "totalEmployees", text)} keyboardType='numeric' placeholder='0' label={'Total Employee'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+
+                                    {isRiskCoverSelected('business_interruption') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, businessInterruption: !prev.businessInterruption }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.businessins} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Business Interruption</Text>
+                                            </View>
+
+                                            {
+                                                expanded.businessInterruption ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section9.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section9", "grossProfitSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.sections.section9.businessInterruptionTerrorismSI} onChangeText={(text) => handleSectionChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>
+                                    }
+                                    {isRiskCoverSelected('public_liability') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, publicLiability: !prev.publicLiability }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.mansafe} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Public Liability - Liability Insurance</Text>
+                                            </View>
+
+                                            {
+                                                expanded.publicLiability ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.publicLiability ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section10.publicLiabilitySI} onChangeText={(text) => handleSectionChange("section10", "publicLiabilitySI", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+
+                                    {isRiskCoverSelected('plate_glass') && <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, plateGlassInsurance: !prev.plateGlassInsurance }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.protection} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600', width: '80%' }} numberOfLines={1}>Plate Glass Insurance</Text>
+                                            </View>
+
+                                            {
+                                                expanded.plateGlassInsurance ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+
+                                        <View style={{ display: expanded.plateGlassInsurance ? 'flex' : 'none', marginTop: 10 }}>
+                                            <InputField value={form.sections.section11.plateGlassSI} onChangeText={(text) => handleSectionChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>}
+
+                                    <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
+
+                                    {result && <ResultCardComponent heading='Business' value={result?.premiumSummary?.grossPremium || 0.00}
+                                        children={
+                                            <View style={{ gap: 10 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
+                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>Net Premium</Text>
+                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premiumSummary?.netPremium || 0}</Text>
+                                                </View>
+
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
+                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>GST</Text>
+                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premiumSummary?.gst || 0}</Text>
+                                                </View>
+                                            </View>
+                                        }
+                                    />}
+
+
+
+                                </View>
+
+                            </ScrollView>
                         </View>
+                        <CustomAutoSearchModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={onSelectRiskCode} />
 
-                    </ScrollView>
-                    <CustomAutoSearchModal visible={modalVisible} onClose={() => setModalVisible(false)} onSelect={onSelectRiskCode} />
-
-                </KeyboardAvoidingView>
-            </View>
-        </SafeAreaView>
+                    </KeyboardAvoidingView>
+                </View>
+            </SafeAreaView>
         </View>
     )
 }

@@ -15,13 +15,23 @@ export const globalStyles = StyleSheet.create({
     newContainer: {
         // backgroundColor: color.screenBackground,
         backgroundColor: color.cardBackground,
-        paddingHorizontal: 12,
+        // paddingHorizontal: 12,
         height: '100%',
+        width: '100%',
+        backgroundColor: color.primaryBlueDark,
     },
 
     mainContainer: {
         backgroundColor: color.screenBackground,
         height: '100%',
+    },
+
+    innerContainer: {
+        flex: 1,
+        backgroundColor: color.screenBackground,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        marginTop: 12
     }
 })
 
