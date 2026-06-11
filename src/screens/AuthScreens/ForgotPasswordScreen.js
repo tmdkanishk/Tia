@@ -29,7 +29,7 @@ const ForgotPasswordScreen = () => {
       const response = await forgotPassword({ identifier: identifier });
       if (response.data.success) {
         console.log("Forgot Password Response:", response.data);
-        navigation.navigate('ResetPassword', { identifier: response.data.data.verificationType == 'SMS' ? response.data.data.mobile : response.data.data.email, sentOtp:response.data?.otp });
+        navigation.navigate('ResetPassword', { identifier: response.data.data.verificationType == 'SMS' ? response.data.data.mobile : response.data.data.email, sentOtp: response.data?.otp });
       } else {
         setBackendError(response.data?.message || 'An error occurred. Please try again.');
       }
@@ -44,38 +44,38 @@ const ForgotPasswordScreen = () => {
   }
 
   return (
-     <View style={{ flex: 1, backgroundColor:'#fff' }}>
-    <SafeAreaView>
-      <View style={globalStyles.newContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
-        </TouchableOpacity>
-        <View style={{ gap: 20 }}>
-          <AuthScreenHeader />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView>
+        <View style={[globalStyles.newContainer, { backgroundColor: color.screenBackground }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
+          </TouchableOpacity>
+          <View style={{ gap: 20, paddingHorizontal: 12 }}>
+            <AuthScreenHeader />
 
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Forgot Password</Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Forgot Password</Text>
+            </View>
+
+            <InputField
+              label={'Email or mobile number'}
+              icon={icons.user}
+              iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+              placeholder={'Email or mobile number'}
+              onChangeText={(text) => { setIdentifier(text); setError(null); setBackendError(null); }}
+              value={identifier}
+              error={error}
+            />
+
+            {
+              backendError && <Text style={{ color: color.error }}>{backendError}</Text>
+            }
+
+            <CustomButton label='Forgot Password' onPress={handleForgotPassword} loading={loading} />
+
           </View>
-
-          <InputField
-            label={'Email or mobile number'}
-            icon={icons.user}
-            iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-            placeholder={'Email or mobile number'}
-            onChangeText={(text) => { setIdentifier(text); setError(null); setBackendError(null); }}
-            value={identifier}
-            error={error}
-          />
-
-          {
-            backendError && <Text style={{ color: color.error }}>{backendError}</Text>
-          }
-
-          <CustomButton label='Forgot Password' onPress={handleForgotPassword} loading={loading} />
-
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
     </View>
   )
 }

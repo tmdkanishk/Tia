@@ -91,40 +91,40 @@ const VerificationScreen = ({ route }) => {
 
 
     return (
-         <View style={{ flex: 1, backgroundColor:'#fff' }}>
-        <SafeAreaView>
-            <View style={globalStyles.newContainer}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
-                </TouchableOpacity>
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <SafeAreaView>
+                <View style={[globalStyles.newContainer, { backgroundColor: color.screenBackground }]}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <IconComponent size={26} icon={icons.back} tintColor={color.icon} />
+                    </TouchableOpacity>
 
-                <View style={{ gap: 14, alignItems: 'center', }}>
-                    <View style={{ alignItems: 'center' }}>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Verify Account</Text>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter the OTP sent to your</Text>
-                        <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.primaryBlue, textAlign: 'center', marginTop: 6 }}> {identifier}</Text>
-                    </View>
-
-                    <Image source={require('../../assets/images/otp.png')} style={{ width: width * 0.4, height: width * 0.4, marginVertical: 32, resizeMode: 'contain', tintColor: color.primaryBlueDark }} />
-
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter the 6-digit OTP to verify account</Text>
-                    <CustomOTPInput onChangeOTP={handleChangeOtp} />
-                    {demo && <Text style={{ color: color.successGreen, fontWeight: '600', textAlign: 'center' }}>Demo OTP : {demo}</Text>}
-                    {countdown == 0 &&
-                        <View style={{ width: width, paddingHorizontal: 12 }}>
-                            <Text onPress={handleResend} style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP</Text>
+                    <View style={{ gap: 14, alignItems: 'center', paddingHorizontal: 12 }}>
+                        <View style={{ alignItems: 'center' }}>
+                            <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Verify Account</Text>
+                            <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter the OTP sent to your</Text>
+                            <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.primaryBlue, textAlign: 'center', marginTop: 6 }}> {identifier}</Text>
                         </View>
-                    }
-                    {backendError && <Text style={{ color: color.error }}>{backendError}</Text>}
-                    <View style={{ width: width, paddingHorizontal: 12, gap: 10 }}>
-                        <CustomButton label='Verify & Continue' onPress={handleVerifyOtp} disabled={isButtonDisabled} loading={loading} />
-                        {countdown > 0 && <Text style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP in {countdown}s</Text>}
+
+                        <Image source={require('../../assets/images/otp.png')} style={{ width: width * 0.4, height: width * 0.4, marginVertical: 32, resizeMode: 'contain', tintColor: color.primaryBlueDark }} />
+
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter the 6-digit OTP to verify account</Text>
+                        <CustomOTPInput onChangeOTP={handleChangeOtp} />
+                        {demo && <Text style={{ color: color.successGreen, fontWeight: '600', textAlign: 'center' }}>Demo OTP : {demo}</Text>}
+                        {countdown == 0 &&
+                            <View style={{ width: width, paddingHorizontal: 12 }}>
+                                <Text onPress={handleResend} style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP</Text>
+                            </View>
+                        }
+                        {backendError && <Text style={{ color: color.error }}>{backendError}</Text>}
+                        <View style={{ width: width, paddingHorizontal: 12, gap: 10 }}>
+                            <CustomButton label='Verify & Continue' onPress={handleVerifyOtp} disabled={isButtonDisabled} loading={loading} />
+                            {countdown > 0 && <Text style={{ color: color.primaryBlueDark, textAlign: 'left' }}>Resend OTP in {countdown}s</Text>}
+                        </View>
+
                     </View>
 
                 </View>
-
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
         </View>
     )
 }

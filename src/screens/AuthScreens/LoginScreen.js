@@ -63,7 +63,7 @@ const LoginScreen = () => {
                 );
             } else if (error?.response?.data?.data != null) {
                 console.log("error.response.data", error.response.data);
-                navigation.replace('VerificationScreen', { identifier: error.response.data?.data?.verificationType == 'SMS' ? error.response.data?.data?.mobile : error.response.data?.data?.email,  sentOtp:error.response.data?.data?.otp});
+                navigation.replace('VerificationScreen', { identifier: error.response.data?.data?.verificationType == 'SMS' ? error.response.data?.data?.mobile : error.response.data?.data?.email, sentOtp: error.response.data?.data?.otp });
 
             } else {
                 Alert.alert(
@@ -124,66 +124,59 @@ const LoginScreen = () => {
 
 
     return (
-        <View style={{ flex: 1, backgroundColor:'#fff' }}>
-        <SafeAreaView>
-            <View style={globalStyles.newContainer}>
-                <KeyboardAvoidingView
-                    behavior='padding'
-                    style={{ flex: 1 }}
-                >
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <View style={{ gap: 10 }}>
-                            {/* <View style={{ gap: 6, alignItems: 'center', marginTop: 20, flexDirection: 'row', justifyContent: 'center' }}>
-                            <IconComponent icon={icons.shield} size={56} tintColor={color.primaryBlue} />
-                            <View>
-                                <Text style={{ textTransform: 'uppercase', fontSize: 24, fontWeight: '600', color: color.mainText }}>TIA</Text>
-                                <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText }}>Premium calculators</Text>
-                            </View>
-                        </View> */}
-                            <AuthScreenHeader />
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <SafeAreaView>
+                <View style={[globalStyles.newContainer, { backgroundColor: color.screenBackground }]}>
+                    <KeyboardAvoidingView
+                        behavior='padding'
+                        style={{ flex: 1 }}
+                    >
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <View style={{ gap: 10, paddingHorizontal: 12 }}>
+                                <AuthScreenHeader />
 
-                            <Image source={require('../../assets/logo/loginImg.png')} style={{ width: width * 0.6, height: width * 0.5, alignSelf: 'center' }} />
+                                <Image source={require('../../assets/logo/loginImg.png')} style={{ width: width * 0.6, height: width * 0.5, alignSelf: 'center' }} />
 
-                            <View style={{ alignItems: 'center' }}>
-                                <Text style={{ fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Welcome Back</Text>
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Login to access your account</Text>
-                            </View>
+                                <View style={{ alignItems: 'center' }}>
+                                    <Text style={{ fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Welcome Back</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Login to access your account</Text>
+                                </View>
 
-                            <View style={{ gap: 12 }}>
-                                <InputField
-                                    label={'Email or mobile number'}
-                                    icon={icons.user}
-                                    iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-                                    placeholder={'Email or mobile number'}
-                                    onChangeText={(text) => handleChange("identifier", text)}
-                                    value={emailLoginForm.identifier}
-                                    error={errors.identifier}
-                                />
+                                <View style={{ gap: 12 }}>
+                                    <InputField
+                                        label={'Email or mobile number'}
+                                        icon={icons.user}
+                                        iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+                                        placeholder={'Email or mobile number'}
+                                        onChangeText={(text) => handleChange("identifier", text)}
+                                        value={emailLoginForm.identifier}
+                                        error={errors.identifier}
+                                    />
 
-                                <InputField
-                                    label={'Password'}
-                                    icon={icons.password}
-                                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                                    placeholder={'Enter password'}
-                                    secureTextEntry
-                                    onChangeText={(text) => handleChange("password", text)}
-                                    value={emailLoginForm.password}
-                                    error={errors.password}
-                                />
+                                    <InputField
+                                        label={'Password'}
+                                        icon={icons.password}
+                                        iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                                        placeholder={'Enter password'}
+                                        secureTextEntry
+                                        onChangeText={(text) => handleChange("password", text)}
+                                        value={emailLoginForm.password}
+                                        error={errors.password}
+                                    />
 
-                                <Text onPress={() => navigation.navigate('ForgotPassword')} style={{ fontSize: 16, color: color.primaryBlueDark, textAlign: 'right', marginVertical: 6 }}>Forgot Password ?</Text>
+                                    <Text onPress={() => navigation.navigate('ForgotPassword')} style={{ fontSize: 16, color: color.primaryBlueDark, textAlign: 'right', marginVertical: 6 }}>Forgot Password ?</Text>
 
-                                <CustomButton label='Login' onPress={handleEmailLogin} loading={loading} />
-                                <Text onPress={() => navigation.navigate('Register')} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Don't have an account? <Text style={{ color: color.primaryBlueDark }}>Register</Text></Text>
+                                    <CustomButton label='Login' onPress={handleEmailLogin} loading={loading} />
+                                    <Text onPress={() => navigation.navigate('Register')} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Don't have an account? <Text style={{ color: color.primaryBlueDark }}>Register</Text></Text>
+
+                                </View>
 
                             </View>
 
-                        </View>
-
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
-        </SafeAreaView>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </View>
+            </SafeAreaView>
         </View>
     )
 }

@@ -7,7 +7,7 @@ import { IconComponent, icons } from './IconComponent';
 
 const TABS = [
   { id: 'Home', icon: icons.home, screen: 'home' },
-  { id: 'Policies', icon: icons.policy, screen: 'policies' },
+  { id: 'Quotations', icon: icons.policy, screen: 'quotations' },
   { id: 'Profile', icon: icons.user, screen: 'profile' },
   { id: 'Support', icon: icons.service, screen: 'support' },
 ];
@@ -22,7 +22,7 @@ const BottomTabBar = ({ onButtonClick, active }) => (
           style={[styles.tabItem, isActive && styles.activeTab]}
           onPress={() => onButtonClick(tab.screen)}
           activeOpacity={0.7}
-          disabled={tab.id == 'Home' ? false : true}
+          disabled={tab.id == 'Home' || tab.id == 'Quotations' ? false : true}
         >
           {/* {isActive && <View style={styles.activeIndicator} />} */}
           <IconComponent icon={tab.icon} size={24} tintColor={isActive ? color.primaryBlueDark : color.secondaryText} />
@@ -62,8 +62,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     borderRadius: 10,
-    height: 56,
-    width: 56
+    height: 64,
+    width: 64,
+
   },
   activeIndicator: {
     position: 'absolute',

@@ -105,7 +105,7 @@ const RegisterScreen = () => {
 
             const response = await registerAPI(payload);
             console.log("response", response);
-            navigation.replace('VerificationScreen', { identifier: response.data.data?.verificationType == 'SMS' ? response.data.data?.mobile : response.data.data?.email, sentOtp:response.data?.otp });
+            navigation.replace('VerificationScreen', { identifier: response.data.data?.verificationType == 'SMS' ? response.data.data?.mobile : response.data.data?.email, sentOtp: response.data?.otp });
 
         } catch (error) {
             console.log("error in register api", error.response.data);
@@ -125,96 +125,96 @@ const RegisterScreen = () => {
 
 
     return (
-        <View style={{ flex: 1, backgroundColor:'#fff' }}>
-        <SafeAreaView>
-            <View style={globalStyles.newContainer}>
-                <KeyboardAvoidingView
-                    behavior={'padding'}
-                    style={{ flex: 1 }}
-                >
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <View style={{ gap: 20, paddingBottom:10 }}>
-                           
-                            <AuthScreenHeader />
+        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+            <SafeAreaView>
+                <View style={[globalStyles.newContainer, { backgroundColor: color.screenBackground }]}>
+                    <KeyboardAvoidingView
+                        behavior={'padding'}
+                        style={{ flex: 1 }}
+                    >
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <View style={{ gap: 20, paddingBottom: 10, paddingHorizontal: 12 }}>
 
-                            <View style={{ alignItems: 'center' }}>
-                                <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Register as  {role == 'CUSTOMER' ? 'Customer' : role =='EMPLOYEE' ? 'Employee' : 'Agent'} </Text>
-                                <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter your details to get started</Text>
+                                <AuthScreenHeader />
+
+                                <View style={{ alignItems: 'center' }}>
+                                    <Text style={{ textTransform: 'capitalize', fontSize: 24, fontWeight: '600', color: color.mainText, textAlign: 'center' }}> Register as  {role == 'CUSTOMER' ? 'Customer' : role == 'EMPLOYEE' ? 'Employee' : 'Agent'} </Text>
+                                    <Text style={{ textTransform: 'capitalize', fontSize: 14, fontWeight: '600', color: color.secondaryText, textAlign: 'center' }}>Enter your details to get started</Text>
+                                </View>
+
+                                <InputField
+                                    label={'Full Name'}
+                                    icon={icons.user}
+                                    iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+                                    placeholder={'Enter your fullName'}
+                                    onChangeText={(text) => handleChange("fullName", text)}
+                                    value={form.fullName}
+                                    error={errors.fullName}
+                                />
+
+                                <InputField
+                                    label={'Mobile Number'}
+                                    icon={icons.phone}
+                                    iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+                                    placeholder={'Enter mobile number'}
+                                    keyboardType="phone-pad"
+                                    maxLength={10}
+                                    onChangeText={(text) => handleChange("mobile", text)}
+                                    value={form.mobile}
+                                    error={errors.mobile}
+
+                                />
+
+                                <InputField
+                                    label={'Email Address'}
+                                    icon={icons.email}
+                                    iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
+                                    placeholder={'Enter email address'}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    onChangeText={(text) => handleChange("email", text)}
+                                    value={form.email}
+                                    error={errors.email}
+                                />
+
+                                <InputField
+                                    label={'Password'}
+                                    icon={icons.password}
+                                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                                    placeholder={'Enter password'}
+                                    secureTextEntry
+                                    onChangeText={(text) => handleChange("password", text)}
+                                    value={form.password}
+                                    error={errors.password}
+                                />
+                                <InputField
+                                    label={'Confirm Password'}
+                                    icon={icons.password}
+                                    iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
+                                    placeholder={'Confirm Password'}
+                                    secureTextEntry
+                                    onChangeText={(text) => handleChange("confirmPassword", text)}
+                                    value={form.confirmPassword}
+                                    error={errors.confirmPassword}
+                                />
+
+                                <View style={{ gap: 8 }}>
+                                    <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> Minimum 8 characters</Text>
+                                    <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 number</Text>
+                                    <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 special character</Text>
+                                    <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 uppercase letter</Text>
+                                </View>
+
+                                <CustomButton label='Sign Up' onPress={handleSignUp} loading={loading} />
+                                {backendError && <Text style={{ color: color.error, textAlign: 'center' }}>{backendError}</Text>}
+                                <Text onPress={() => navigation.goBack()} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>
+
                             </View>
 
-                            <InputField
-                                label={'Full Name'}
-                                icon={icons.user}
-                                iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-                                placeholder={'Enter your fullName'}
-                                onChangeText={(text) => handleChange("fullName", text)}
-                                value={form.fullName}
-                                error={errors.fullName}
-                            />
-
-                            <InputField
-                                label={'Mobile Number'}
-                                icon={icons.phone}
-                                iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-                                placeholder={'Enter mobile number'}
-                                keyboardType="phone-pad"
-                                maxLength={10}
-                                onChangeText={(text) => handleChange("mobile", text)}
-                                value={form.mobile}
-                                error={errors.mobile}
-
-                            />
-
-                            <InputField
-                                label={'Email Address'}
-                                icon={icons.email}
-                                iconStyle={{ width: 24, height: 24, tintColor: color.secondaryText }}
-                                placeholder={'Enter email address'}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                onChangeText={(text) => handleChange("email", text)}
-                                value={form.email}
-                                error={errors.email}
-                            />
-
-                            <InputField
-                                label={'Password'}
-                                icon={icons.password}
-                                iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                                placeholder={'Enter password'}
-                                secureTextEntry
-                                onChangeText={(text) => handleChange("password", text)}
-                                value={form.password}
-                                error={errors.password}
-                            />
-                            <InputField
-                                label={'Confirm Password'}
-                                icon={icons.password}
-                                iconStyle={{ width: 32, height: 32, tintColor: color.secondaryText }}
-                                placeholder={'Confirm Password'}
-                                secureTextEntry
-                                onChangeText={(text) => handleChange("confirmPassword", text)}
-                                value={form.confirmPassword}
-                                error={errors.confirmPassword}
-                            />
-
-                            <View style={{ gap: 8 }}>
-                                <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> Minimum 8 characters</Text>
-                                <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 number</Text>
-                                <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 special character</Text>
-                                <Text style={{ alignItems: 'center' }}><IconComponent icon={icons.checkmark} size={18} /> At least 1 uppercase letter</Text>
-                            </View>
-
-                            <CustomButton label='Sign Up' onPress={handleSignUp} loading={loading} />
-                            {backendError && <Text style={{color:color.error, textAlign:'center'}}>{backendError}</Text>}
-                            <Text onPress={() => navigation.goBack()} style={{ fontSize: 16, color: color.mainText, textAlign: 'center' }}>Already have an account? <Text style={{ color: color.primaryBlueDark }}>Login</Text></Text>
-
-                        </View>
-
-                    </ScrollView >
-                </KeyboardAvoidingView>
-            </View >
-        </SafeAreaView>
+                        </ScrollView >
+                    </KeyboardAvoidingView>
+                </View >
+            </SafeAreaView>
         </View>
 
     )

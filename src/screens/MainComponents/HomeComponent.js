@@ -1,6 +1,5 @@
 import { View, Text, Dimensions, Pressable, TouchableOpacity } from 'react-native'
 import React, { memo, use } from 'react'
-import HeaderComponent from '../MainComponents/HeaderComponent';
 import { color } from '../../utility/color';
 import { IconComponent, icons } from '../../components/IconComponent';
 import { useNavigation } from '@react-navigation/native';
@@ -16,17 +15,11 @@ const HomeComponent = () => {
   const hour = new Date().getHours();
 
   return (
-    <View style={{ paddingHorizontal: 12, gap: 10 }}>
-      <HeaderComponent />
-      <View style={{  paddingBottom: 16,}}>
+    <View style={{ gap: 10 }}>
+      <View style={{ paddingBottom: 16, }}>
         <Text style={{ fontSize: 20, fontWeight: '600', color: color.mainText }}>{hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'}, {user?.name}</Text>
         <Text style={{ fontSize: 14, color: color.secondaryText }}>Select a calculator to get started</Text>
       </View>
-
-      {/* <View>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Choose a Calculator</Text>
-        <Text style={{ fontSize: 14, color: color.secondaryText }}> Select the calculator that matches your insurance requirement.</Text>
-      </View> */}
 
       {/* Fire Calculator */}
       <TouchableOpacity onPress={() => navigation.navigate('FireCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: '#fc4f05', flexDirection: 'row', gap: 10, alignItems: 'center' }}>
@@ -90,7 +83,7 @@ const HomeComponent = () => {
         <View style={{ backgroundColor: color.lightBlueBackground, width: width * 0.150, height: width * 0.150, borderRadius: width * 0.75, borderWidth: 1, borderColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
           <IconComponent icon={icons.verified} size={42} tintColor={color.primaryBlueDark} />
         </View>
-        <View style={{ width: width * 0.7, paddingVertical:18 }}>
+        <View style={{ width: width * 0.7, paddingVertical: 18 }}>
           <Text style={{ fontSize: 13, color: color.mainText }} >All calculations are indicative and subject to underwriting and policy terms.</Text>
         </View>
       </View>

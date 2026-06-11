@@ -127,3 +127,13 @@ export const riskFireCovers = [
     icon: icons.thief
   },
 ]
+
+
+
+export const formattedDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}

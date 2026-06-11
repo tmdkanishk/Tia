@@ -42,6 +42,8 @@ import logoutf from '../assets/images/logoutf.png'
 import exlamation from '../assets/images/exlamation.png'
 import dashbin from '../assets/images/dashbin.png'
 import plugin from '../assets/images/plugin.png'
+import excelFile from '../assets/images/excelFile.png'
+import pdfFile from '../assets/images/pdfFile.png'
 
 
 
@@ -90,7 +92,9 @@ export const icons = {
     logoutf: logoutf,
     exlamation: exlamation,
     delete: dashbin,
-    plugin: plugin
+    plugin: plugin,
+    excelFile: excelFile,
+    pdfFile, pdfFile
 
 
 
