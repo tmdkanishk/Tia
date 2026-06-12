@@ -10,6 +10,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { color } from '../utility/color';
 import SplashScreen from 'react-native-splash-screen';
 import AppLoader from '../components/AppLoader'
+import CustomModal from '../components/CustomModal'
 
 const RootContent = () => {
   useEffect(() => {
@@ -26,6 +27,7 @@ const RootContent = () => {
         {isLogin ? <MainStack /> : <AuthStack />}
       </NavigationContainer>
       <AppLoader />
+      <CustomModal />
     </>
   );
 };
