@@ -8,11 +8,12 @@ export const color = {
 
     mainText: "#111827",
     secondaryText: "#6B7280",
-    lightText:'#ffffff',
+    lightText: '#ffffff',
 
     borderColor: "#E5E7EB",
     dividerLine: "#ECEFF3",
     serface: "#dcdcde",
+    lightSerface: "#F9FAFB",
 
     cardBackground: "#FFFFFF",
     screenBackground: "#FFFFFF",
@@ -23,6 +24,10 @@ export const color = {
     warningBorder: "#F5D68A",
     dark: '#000000',
     icon: '#111827',
-    error:'#f80000',
-    white:'#ffffff'
+    error: '#f80000',
+    white: '#ffffff',
+    fire: '#fc4f05',
+    lightFire: '#fff5f2'
+
+
 };

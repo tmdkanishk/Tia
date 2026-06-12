@@ -4,15 +4,18 @@ import { color } from '../utility/color'
 import { useSelector } from 'react-redux';
 
 const AppLoader = () => {
-    const loading = useSelector(
+    const appLoading = useSelector(
         state => state.app.appLoading
     );
-
-    if (!loading) return null;
+    // console.log("AppLoader", appLoading);
+    if (!appLoading) return null;
 
     return (
         <View style={styles.container}>
-            <ActivityIndicator size="large" color={color.primaryBlueDark} />
+            <View style={{ padding: 32, borderRadius: 12, backgroundColor: color.screenBackground }}>
+                <ActivityIndicator size="large" color={color.primaryBlueDark} />
+            </View>
+
         </View>
     )
 }

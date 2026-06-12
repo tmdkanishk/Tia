@@ -22,16 +22,16 @@ const HomeComponent = () => {
       </View>
 
       {/* Fire Calculator */}
-      <TouchableOpacity onPress={() => navigation.navigate('FireCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: '#fc4f05', flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-        <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: '#fff5f2', alignItems: 'center', justifyContent: 'center' }}>
-          <IconComponent icon={icons.fire} size={46} tintColor={'#fc4f05'} />
+      <TouchableOpacity onPress={() => navigation.navigate('FireCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.fire, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightFire, alignItems: 'center', justifyContent: 'center' }}>
+          <IconComponent icon={icons.fire} size={46} tintColor={color.fire} />
         </View>
 
         <View style={{ width: width * 0.6, gap: 10 }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Fire Calculator</Text>
           <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Fire Insurance policies.</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <IconComponent icon={icons.docs} size={16} tintColor={'#fc4f05'} />
+            <IconComponent icon={icons.docs} size={16} tintColor={color.fire} />
             <Text style={{ fontSize: 14, color: color.secondaryText }}>120 Quotes Generated</Text>
           </View>
         </View>
