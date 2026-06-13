@@ -7,6 +7,7 @@ const initialState = {
     hasMore: true,
     search: '',
     tab: 'all',
+    refresh: false
 };
 
 const quotationsSlice = createSlice({
@@ -16,11 +17,12 @@ const quotationsSlice = createSlice({
         setLoading: (state, action) => {
             state.loading = action.payload;
         },
-
+        setRefresh: (state, action) => {
+            state.refresh = action.payload;
+        },
         setSearch: (state, action) => {
             state.search = action.payload;
         },
-
         setTab: (state, action) => {
             state.tab = action.payload;
         },
@@ -51,6 +53,7 @@ const quotationsSlice = createSlice({
 
 export const {
     setLoading,
+    setRefresh,
     setSearch,
     setTab,
     setPage,

@@ -12,15 +12,14 @@ import { checkPermission } from '../../utility/permissions';
 import { IconComponent, icons } from '../../components/IconComponent';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { getQuotationDetails } from '../../features/quotations/quotationsAPI';
-import apiClient from '../../services/apiClient';
 import { BASE_URL } from '../../config/env';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAppLoading, showModal } from '../../features/app/appSlice';
 import { formattedDate } from '../../utility/helper';
 import { sumInsuredLabels, discountLabels, rateLabels, premiumLabels } from '../../utility/labels';
-
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 const QuoteDetailScreen = ({ route }) => {
-    const { quoteId } = route.params;
+    const { quoteId, quoteType } = route.params;
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
 
@@ -148,11 +147,6 @@ const QuoteDetailScreen = ({ route }) => {
 
 
 
-    const getExtention = filename => {
-        // To get the file extension
-        return /[.]/.exec(filename) ? /[^.]+$/.exec(filename) : undefined;
-    };
-
 
     return (
         <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
@@ -165,27 +159,48 @@ const QuoteDetailScreen = ({ route }) => {
                                 <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Icon name="file-text" size={22} color={color.primaryBlue} />
+                                            <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
+                                                {quoteType == 'fire' ? <IconComponent icon={icons.fire} size={22} tintColor={color.fire} />
+                                                    : quoteType == 'business' ? <IconComponent icon={icons.businessins} size={22} tintColor={color.primaryBlue} /> :
+                                                        <IconComponent icon={icons.industry} size={22} tintColor={color.icon} />
+                                                }
                                             </View>
                                             <Text style={textStyles.subtitle}> {data?.quoteDetails?.quoteNo} </Text>
                                         </View>
-                                        {/* <View style={{ paddingHorizontal: 10, paddingVertical: 6, backgroundColor: color.successGreen, borderRadius: 6, marginLeft: 10 }}>
-                                            <Text style={[textStyles.caption, { color: color.lightText }]}>PDF Exported</Text>
-                                        </View> */}
-
                                     </View>
 
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', }}>
-                                        <Text style={{ width: '49%' }}>Customer   : {data?.quoteDetails?.customerName}</Text>
-                                        <Text style={{ width: '49%' }}>Risk Code  : {data?.riskDetails?.riskCode}</Text>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <View style={{ width: '70%', flexDirection: 'row', gap: 10 }}>
+                                            <FontAwesome6 name="user-large" size={18} color={color.primaryBlueDark} />
+                                            <Text style={textStyles.bodySmall}>{data?.quoteDetails?.customerName}</Text>
+                                        </View>
                                     </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', }}>
-                                        <Text style={{ width: '49%' }}>Pincode      : {data?.riskDetails?.pinCode}</Text>
-                                        <Text style={{ width: '49%' }}>Date            : {formattedDate(data?.quoteDetails?.createdAt)}</Text>
+
+
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <View style={{ width: '70%', flexDirection: 'row', gap: 10 }}>
+                                            <FontAwesome6 name="location-dot" size={18} color={color.primaryBlueDark} />
+                                            <Text style={textStyles.bodySmall}>{data?.riskDetails?.pinCode}</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                                            <FontAwesome6 name="calendar-days" size={18} color={color.primaryBlueDark} />
+                                            <Text style={textStyles.bodySmall}>{formattedDate(data?.quoteDetails?.createdAt)}</Text>
+                                        </View>
                                     </View>
-                                    <Text numberOfLines={2} ellipsizeMode='tail'>Address      : {data?.riskDetails?.address}</Text>
-                                    <Text numberOfLines={2} ellipsizeMode='tail'>Occupancy : {data?.riskDetails?.occupancy}</Text>
+
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>RiskCode :</Text>
+                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.riskCode}</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>Address :</Text>
+                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.address}</Text>
+                                    </View>
+
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>Occupancy :</Text>
+                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.occupancy}</Text>
+                                    </View>
                                 </View>
                                 <View
                                     style={{
@@ -198,16 +213,19 @@ const QuoteDetailScreen = ({ route }) => {
                                     }}
                                 >
                                     <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, paddingVertical: 10, borderColor: color.borderColor }}>
+                                        <FontAwesome6 name="calculator" size={20} color={color.primaryBlueDark} />
                                         <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Total SI</Text>
                                         <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]}> {Number(data?.sumInsured?.totalSi).toLocaleString('en-IN')}</Text>
                                     </View>
 
                                     <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, paddingVertical: 10, borderColor: color.borderColor }}>
+                                        <FontAwesome6 name="chart-line" size={20} color={color.primaryBlueDark} />
                                         <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Gross Premium</Text>
                                         <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]}>{Number(data?.premiums?.grossPremium).toLocaleString('en-IN')}</Text>
                                     </View>
 
                                     <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}>
+                                        <FontAwesome6 name="circle-plus" size={20} color={color.primaryBlueDark} />
                                         <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Addons</Text>
                                         <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]} >{data?.addons.length} Selected</Text>
                                     </View>
@@ -216,10 +234,10 @@ const QuoteDetailScreen = ({ route }) => {
                                 <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <TouchableOpacity onPress={() => toggleSection('sumInsured')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={28} color={color.primaryBlueDark} />
+                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
                                             <Text style={textStyles.body}>Sum Insured Details</Text>
                                         </View>
-                                        <Icon name="chevron-down" size={28} color={color.icon} />
+                                        <Icon name={sectionShow.sumInsured ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
                                     </TouchableOpacity>
 
                                     <View style={{ display: sectionShow.sumInsured ? 'flex' : 'none' }}>
@@ -251,10 +269,11 @@ const QuoteDetailScreen = ({ route }) => {
                                 <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <TouchableOpacity onPress={() => toggleSection('discount')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={28} color={color.primaryBlueDark} />
+                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
                                             <Text style={textStyles.body}>Discounts</Text>
                                         </View>
-                                        <Icon name="chevron-down" size={28} color={color.icon} />
+                                        <Icon name={sectionShow.discount ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
+
                                     </TouchableOpacity>
 
                                     <View style={{ display: sectionShow.discount ? 'flex' : 'none' }}>
@@ -283,10 +302,10 @@ const QuoteDetailScreen = ({ route }) => {
                                 <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <TouchableOpacity onPress={() => toggleSection('rate')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={28} color={color.primaryBlueDark} />
+                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
                                             <Text style={textStyles.body}>Rate</Text>
                                         </View>
-                                        <Icon name="chevron-down" size={28} color={color.icon} />
+                                        <Icon name={sectionShow.rate ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
                                     </TouchableOpacity>
                                     <View style={{ display: sectionShow.rate ? 'flex' : 'none' }}>
                                         <View style={styles.table}>
@@ -314,10 +333,10 @@ const QuoteDetailScreen = ({ route }) => {
                                 <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <TouchableOpacity onPress={() => toggleSection('premiumBreackdown')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={28} color={color.primaryBlueDark} />
+                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
                                             <Text style={textStyles.body}>Premium & Breackdown</Text>
                                         </View>
-                                        <Icon name="chevron-down" size={28} color={color.icon} />
+                                        <Icon name={sectionShow.premiumBreackdown ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
                                     </TouchableOpacity>
                                     <View style={{ display: sectionShow.premiumBreackdown ? 'flex' : 'none' }}>
                                         <View style={styles.table}>
@@ -342,13 +361,13 @@ const QuoteDetailScreen = ({ route }) => {
                                     </View>
                                 </View>
 
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
+                                {data?.addons?.length > 0 && <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
                                     <TouchableOpacity onPress={() => toggleSection('additonalCover')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={28} color={color.primaryBlueDark} />
+                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
                                             <Text style={textStyles.body}>Additional Covers (Addons)</Text>
                                         </View>
-                                        <Icon name="chevron-down" size={28} color={color.icon} />
+                                        <Icon name={sectionShow.additonalCover ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
                                     </TouchableOpacity>
                                     <View style={{ display: sectionShow.additonalCover ? 'flex' : 'none', gap: 10 }}>
                                         {
@@ -361,7 +380,7 @@ const QuoteDetailScreen = ({ route }) => {
                                         }
 
                                     </View>
-                                </View>
+                                </View>}
 
 
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
