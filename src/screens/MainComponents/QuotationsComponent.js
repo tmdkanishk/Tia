@@ -8,7 +8,7 @@ import { textStyles } from '../../utility/textStyles';
 import { useNavigation } from '@react-navigation/native';
 import { getQuotations } from '../../features/quotations/quotationsAPI';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetQuotationList, setLoading, setQuotationData, setSearch, setTab } from '../../features/quotations/quotationsSlice';
+import { resetQuotationList, setLoading, setQuotationData, setRefresh, setSearch, setTab } from '../../features/quotations/quotationsSlice';
 import { formattedDate } from '../../utility/helper';
 import { IconComponent, icons } from '../../components/IconComponent';
 
@@ -39,7 +39,7 @@ const tabs = [
 
 const QuotationsComponent = () => {
     const dispatch = useDispatch();
-    const { quotations, page, loading, hasMore, search, tab } = useSelector(state => state.quotations);
+    const { quotations, page, loading, refresh, hasMore, search, tab } = useSelector(state => state.quotations);
 
     const navigation = useNavigation();
 
@@ -92,7 +92,7 @@ const QuotationsComponent = () => {
 
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity onPress={() => navigation.navigate('QuoteDetail', { quoteId: item?.id })} style={{ paddingVertical: 10, paddingHorizontal: 6, borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, flexDirection: 'row', borderLeftWidth: 4, borderLeftColor: item?.quoteType == 'fire' ? color.fire : item?.quoteType == 'business' ? color.primaryBlue : color.icon, justifyContent: 'space-between' }}>
+        <TouchableOpacity onPress={() => navigation.navigate('QuoteDetail', { quoteId: item?.id, quoteType: item?.quoteType })} style={{ paddingVertical: 10, paddingHorizontal: 6, borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, flexDirection: 'row', borderLeftWidth: 4, borderLeftColor: item?.quoteType == 'fire' ? color.fire : item?.quoteType == 'business' ? color.primaryBlue : color.icon, justifyContent: 'space-between' }}>
             <View style={{ width: '65%', borderRightWidth: 1, borderColor: color.borderColor, gap: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
                     <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
@@ -100,7 +100,6 @@ const QuotationsComponent = () => {
                             : item?.quoteType == 'business' ? <IconComponent icon={icons.businessins} size={22} tintColor={color.primaryBlue} /> :
                                 <IconComponent icon={icons.industry} size={22} tintColor={color.icon} />
                         }
-
                     </View>
                     <View style={{ gap: 5, width: '80%', }}>
                         <Text style={textStyles.subtitle}>{item?.customerName || 'null'}</Text>
@@ -157,6 +156,21 @@ const QuotationsComponent = () => {
         </View >
     )
 
+    const onRefresh = async () => {
+        try {
+            console.log("calling refreshing")
+            dispatch(setRefresh(true));
+            dispatch(resetQuotationList());
+            await fetchQuotations();
+        } catch (error) {
+
+        } finally {
+            dispatch(setRefresh(false));
+        }
+
+
+    }
+
     return (
         <View style={{ gap: 12, height: '80%', backgroundColor: '#fff', }}>
             <SearchBar onChangeText={onchangeText} value={search} />
@@ -171,6 +185,8 @@ const QuotationsComponent = () => {
                 showsVerticalScrollIndicator={false}
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={0.5}
+                refreshing={refresh}
+                onRefresh={onRefresh}
                 ListEmptyComponent={
                     !loading &&
                     <View style={{}}>
