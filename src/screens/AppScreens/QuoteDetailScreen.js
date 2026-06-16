@@ -97,19 +97,29 @@ const QuoteDetailScreen = ({ route }) => {
             // config: To pass the downloading related options
             // fs: Directory path where we want our image to download
             const { config, fs } = ReactNativeBlobUtil;
-            let PictureDir = fs.dirs.DownloadDir;
+
+            // const filePath =
+            //     `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/doc_${Date.now()}.pdf`;
+            // console.log( " dir path ",ReactNativeBlobUtil.fs.dirs);
+
+            const filePath = `/storage/emulated/0/Download/doc_${Date.now()}${ext}`;
+            // let downloadDir = fs.dirs.SDCardDir;
             let options = {
                 fileCache: true,
                 addAndroidDownloads: {
                     // Related to the Android only
                     useDownloadManager: true,
                     notification: true,
-                    path:
-                        PictureDir +
-                        '/doc_' +
-                        Math.floor(date.getTime() + date.getSeconds() / 2) +
-                        ext,
+                    // mime: 'application/pdf',
+                    // path:
+                    //     downloadDir +
+                    //     '/doc_' +
+                    //     Math.floor(date.getTime() + date.getSeconds() / 2) +
+                    //     ext,
                     description: 'Downloading File',
+                    mediaScannable: true,
+                    path: filePath,
+
                 },
             };
             await config(options)
@@ -121,7 +131,6 @@ const QuoteDetailScreen = ({ route }) => {
                 .then(res => {
                     // Showing alert after successful downloading
                     console.log('res -> ', JSON.stringify(res));
-                    // alert('Quote Downloaded Successfully.');
                     dispatch(
                         showModal({
                             title: 'Success',
@@ -141,12 +150,7 @@ const QuoteDetailScreen = ({ route }) => {
         } finally {
             dispatch(setAppLoading(false));
         }
-
-
     };
-
-
-
 
     return (
         <View style={{ flex: 1, backgroundColor: color.screenBackground }}>

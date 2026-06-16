@@ -21,7 +21,6 @@ const appSlice = createSlice({
             state.modal.visible = true;
             state.modal.title = action.payload.title;
             state.modal.message = action.payload.message;
-            
         },
 
         hideModal: (state) => {
