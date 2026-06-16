@@ -1,5 +1,5 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import SearchBar from '../../components/SearchBar'
 import { color } from '../../utility/color';
 import Icon from 'react-native-vector-icons/Feather';
@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { resetQuotationList, setLoading, setQuotationData, setRefresh, setSearch, setTab } from '../../features/quotations/quotationsSlice';
 import { formattedDate } from '../../utility/helper';
 import { IconComponent, icons } from '../../components/IconComponent';
+import QuotationSkeleton from '../../components/QuotationSkeleton';
 
 
 
@@ -143,6 +144,9 @@ const QuotationsComponent = () => {
         </TouchableOpacity>
     )
 
+
+
+
     const renderHeader = () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
             {
@@ -171,6 +175,11 @@ const QuotationsComponent = () => {
 
     }
 
+
+    const skeletonData = useMemo(
+        () => Array.from({ length: 5 }, (_, i) => i),
+        []
+    );
     return (
         <View style={{ gap: 12, height: '80%', backgroundColor: '#fff', }}>
             <SearchBar onChangeText={onchangeText} value={search} />
@@ -194,7 +203,12 @@ const QuotationsComponent = () => {
                     </View>
                 }
                 ListFooterComponent={
-                    loading && <ActivityIndicator size={'large'} color={color.primaryBlueDark} />
+                    // loading && <ActivityIndicator size={'large'} color={color.primaryBlueDark} />
+                    loading ? <>
+                        {skeletonData.map((item, index) => (
+                            <QuotationSkeleton key={index} />
+                        ))}
+                    </> : null
                 }
             />
         </View>
