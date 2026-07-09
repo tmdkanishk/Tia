@@ -8,7 +8,7 @@ import ResultCardComponent from '../../components/ResultCardComponent'
 import { globalStyles } from '../../utility/globalStyles'
 import { useNavigation } from '@react-navigation/native'
 import { color } from '../../utility/color'
-import { riskIARCovers } from '../../utility/helper'
+import { formatIndianCurrency, getRawValue, riskIARCovers } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
 import AddonSelector from '../../components/AddonSelector'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -33,7 +33,6 @@ const IARCalculatorScreen = () => {
         machineryBreakdown: true,
         mlop: true
     });
-
 
     const [sumInsuredData, setSumInsuredData] = useState({
         buildingSI: '',
@@ -137,6 +136,7 @@ const IARCalculatorScreen = () => {
     };
 
     const handleChangeText = (key, value) => {
+        value = getRawValue(value);
         const updatedData = {
             ...sumInsuredData,
             [key]: value,
@@ -153,6 +153,7 @@ const IARCalculatorScreen = () => {
 
 
     const handleFireAliedChangeText = (key, value) => {
+        value = getRawValue(value);
         const updatedData = {
             ...fireAllied,
             [key]: value,
@@ -161,7 +162,24 @@ const IARCalculatorScreen = () => {
     };
 
     const handleBusinessInterruptionChange = (key, value) => {
+        value = getRawValue(value);
         setBusinessInterruptionData((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    }
+
+    const handlesMachineryChange = (key, value) => {
+        value = getRawValue(value);
+        setMachineryData((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    }
+
+    const handleMlopChange = (key, value) => {
+        value = getRawValue(value);
+        setMlopData((prev) => ({
             ...prev,
             [key]: value,
         }));
@@ -228,7 +246,6 @@ const IARCalculatorScreen = () => {
     };
 
 
-
     return (
         <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
             <SafeAreaView>
@@ -236,7 +253,7 @@ const IARCalculatorScreen = () => {
                     <BackHeader title={'IAR Calculator'} subTitle={'Calculate premium for Industrial All Risk policies.'} />
                     <KeyboardAvoidingView
                         behavior='padding'
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, backgroundColor: color.screenBackground }}
                     >
                         <View style={globalStyles.innerContainer}>
                             <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
@@ -354,26 +371,31 @@ const IARCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={sumInsuredData.buildingSI} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }}
+                                            <InputField value={formatIndianCurrency(sumInsuredData.buildingSI)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }}
                                                 onChangeText={(text) => {
                                                     handleChangeText('buildingSI', text);
                                                     handleFireAliedChangeText('buildingSI', text);
                                                 }}
                                             />
 
-                                            <InputField value={sumInsuredData.plantAndMachinerySI}
+                                            <InputField value={formatIndianCurrency(sumInsuredData.plantAndMachinerySI)}
                                                 keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }}
                                                 onChangeText={(text) => {
                                                     handleChangeText('plantAndMachinerySI', text);
                                                     handleFireAliedChangeText('plantAndMachinerySI', text);
-                                                    setMachineryData((prev) => ({
-                                                        ...prev,
-                                                        machineryBreakdownSI: text,
-                                                    }));
+
+                                                    handlesMachineryChange("machineryBreakdownSI", text)
+                                                    // setMachineryData((prev) => {
+
+                                                    //     ({
+                                                    //         ...prev,
+                                                    //         machineryBreakdownSI: text,
+                                                    //     })
+                                                    // });
                                                 }} />
 
 
-                                            <InputField value={sumInsuredData.stockSI}
+                                            <InputField value={formatIndianCurrency(sumInsuredData.stockSI)}
                                                 keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }}
                                                 onChangeText={(text) => {
                                                     handleChangeText('stockSI', text)
@@ -382,7 +404,7 @@ const IARCalculatorScreen = () => {
 
                                             />
 
-                                            <InputField value={sumInsuredData.furnitureFixturesFittingsSI}
+                                            <InputField value={formatIndianCurrency(sumInsuredData.furnitureFixturesFittingsSI)}
                                                 keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }}
                                                 onChangeText={(text) => {
                                                     handleChangeText('furnitureFixturesFittingsSI', text);
@@ -390,7 +412,7 @@ const IARCalculatorScreen = () => {
                                                 }}
                                             />
 
-                                            <InputField value={sumInsuredData.otherContentsSI}
+                                            <InputField value={formatIndianCurrency(sumInsuredData.otherContentsSI)}
                                                 keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }}
                                                 onChangeText={(text) => {
                                                     handleChangeText('otherContentsSI', text);
@@ -398,7 +420,7 @@ const IARCalculatorScreen = () => {
                                                 }}
                                             />
 
-                                            <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(totalSumInsured)} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
 
@@ -422,14 +444,14 @@ const IARCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={fireAllied.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={fireAllied.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={fireAllied.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={fireAllied.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={fireAllied.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={totalSumInsured} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={totalSumInsured} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                            <InputField value={formatIndianCurrency(fireAllied.buildingSI)} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(fireAllied.plantAndMachinerySI)} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(fireAllied.stockSI)} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(fireAllied.furnitureFixturesFittingsSI)} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(fireAllied.otherContentsSI)} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(totalSumInsured)} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatIndianCurrency(totalSumInsured)} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={formatIndianCurrency(totalSumInsured)} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                                         </View>
                                     </View>
 
@@ -452,22 +474,18 @@ const IARCalculatorScreen = () => {
 
                                         <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
                                             <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                                <InputField value={businessInterruptionData.businessInterruptionSI}
+                                                <InputField value={formatIndianCurrency(businessInterruptionData.businessInterruptionSI)}
                                                     keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured (FLOP) - Indemnity 12 months'} containerInputStyle={{ paddingVertical: 6 }}
                                                     onChangeText={(text) => {
                                                         handleBusinessInterruptionChange("businessInterruptionSI", text);
                                                         handleBusinessInterruptionChange("terrorismSI", text);
-                                                        setMlopData((prev) => ({
-                                                            ...prev,
-                                                            mlopSI: text,
-                                                        }))
-
+                                                        handleMlopChange("mlopSI", text)
                                                     }}
                                                 />
 
 
                                                 {riskCover.find(c => c.key == 'terrorism').selected &&
-                                                    <InputField value={businessInterruptionData.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                                    <InputField value={formatIndianCurrency(businessInterruptionData.terrorismSI)} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                                             </View>
                                         </View>
                                     </View>
@@ -489,7 +507,7 @@ const IARCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField editable={false} value={machineryData.machineryBreakdownSI} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField editable={false} value={formatIndianCurrency(machineryData.machineryBreakdownSI)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
 
@@ -510,7 +528,7 @@ const IARCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.mlop ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField editable={false} value={mlopData.mlopSI} keyboardType='numeric' placeholder='0' label={'Mlop Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField editable={false} value={formatIndianCurrency(mlopData.mlopSI)} keyboardType='numeric' placeholder='0' label={'Mlop Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>)}
 
@@ -559,10 +577,10 @@ const IARCalculatorScreen = () => {
                                                         <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.stfiRate}</Text>
                                                     </View>
 
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                                                    {riskCover.find(c => c.key == 'terrorism').selected && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
                                                         <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Terrorism Rate</Text>
                                                         <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.terrorismRate}</Text>
-                                                    </View>
+                                                    </View>}
 
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
                                                         <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Final Fire Rate</Text>
@@ -575,16 +593,6 @@ const IARCalculatorScreen = () => {
                                                     <Text style={{ color: color.primaryBlueDark, textDecorationLine: 'underline' }}>Hide Rates</Text>
                                                 </TouchableOpacity>}
 
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <TouchableOpacity style={{ width: '48%', borderWidth: 1, borderColor: color.borderColor, paddingVertical: 12, borderRadius: 10, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                        <IconComponent icon={icons.pdfFile} size={24} />
-                                                        <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>Export PDF</Text>
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity style={{ width: '48%', borderWidth: 1, borderColor: color.borderColor, paddingVertical: 12, borderRadius: 10, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                                        <IconComponent icon={icons.excelFile} size={24} />
-                                                        <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>Export Excel</Text>
-                                                    </TouchableOpacity>
-                                                </View>
                                             </View>
                                         }
                                     />}

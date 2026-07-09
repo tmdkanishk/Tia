@@ -14,6 +14,7 @@ import { IconComponent, icons } from './IconComponent';
 import { color } from '../utility/color';
 import { useNavigation } from '@react-navigation/native';
 import { searchAddon } from '../features/addon/addon';
+import { formatIndianCurrency, getRawValue } from '../utility/helper';
 
 const AddonSelector = ({
   value = [],
@@ -62,6 +63,8 @@ const AddonSelector = ({
   };
 
   const updateValue = (addonId, inputValue) => {
+
+    inputValue = getRawValue(inputValue);
     const numValue = Number(inputValue);
 
     // Validation
@@ -293,7 +296,7 @@ const AddonSelector = ({
                   <TextInput
                     keyboardType="numeric"
                     placeholder="10,000"
-                    value={item.value}
+                    value={formatIndianCurrency(item.value)}
                     onChangeText={text => updateValue(item.id, text)}
                     style={[
                       styles.valueInput,
