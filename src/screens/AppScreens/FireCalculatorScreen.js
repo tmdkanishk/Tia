@@ -6,12 +6,13 @@ import { IconComponent, icons } from '../../components/IconComponent'
 import { color } from '../../utility/color'
 import CustomAutoSearchModal from '../../components/CustomAutoSearchModal'
 import InputField from '../../components/InputField'
-import { riskFireCovers } from '../../utility/helper'
+import { formatIndianCurrency, getRawValue, riskFireCovers } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
 import ResultCardComponent from '../../components/ResultCardComponent'
 import { calculateFireInsuranceAPI } from '../../features/fireInsurance/fireInsuranceAPI'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
+import AddonSelector from '../../components/AddonSelector'
 
 const FireCalculatorScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +21,8 @@ const FireCalculatorScreen = () => {
   const [riskCover, setRiskCover] = useState(riskFireCovers)
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [viewButton, setViewButton] = useState(true);
+  const [selectedAddons, setSelectedAddons] = useState([]);
   const [expanded, setExpanded] = useState({
     insuredDetails: true,
     rickCover: true,
@@ -29,36 +32,39 @@ const FireCalculatorScreen = () => {
 
   const [form, setForm] = useState({
     "customerDetails": {
-      "customerName": null,
-      "address": null,
-      "pinCode": null,
-      "riskCode": null,
-      "occupancy": null
+      "customerName": "",
+      "address": "",
+      "pinCode": "",
+      "riskCode": "",
+      "occupancy": ""
     },
     "riskCovers": {
       "terrorism": true,
       "burglary": true
     },
     "discounts": {
-      "iibDiscountPercent": 0,
-      "natcatDiscountPercent": 0
+      "iibDiscountPercent": "",
+      "eqDiscountPercent": "",
+      "stfiDiscountPercent": ""
     },
-    "sumInsured": {
-      "buildingSI": 0,
-      "plantAndMachinerySI": 0,
-      "stockSI": 0,
-      "furnitureFixturesFittingsSI": 0,
-      "otherContentsSI": 0
-    }
-
+    "sumInsured": null,
+    "addons": null
   });
+
+  const [sumInsuredData, setSumInsuredData] = useState({
+    buildingSI: '',
+    plantAndMachinerySI: '',
+    stockSI: '',
+    furnitureFixturesFittingsSI: '',
+    otherContentsSI: '',
+  });
+  const [totalSumInsured, setTotalSumInsured] = useState(null);
 
 
   const onSelectRiskCode = (data) => {
     handleChange("customerDetails", "riskCode", data?.risk_code);
     handleChange("customerDetails", "occupancy", data?.occupancy_desc);
   }
-
 
   const handleChange = (section, field, value) => {
     setForm(prev => ({
@@ -70,7 +76,6 @@ const FireCalculatorScreen = () => {
     }));
   };
 
-
   const toggleRiskCover = (key) => {
     setRiskCover((prev) =>
       prev.map((item) =>
@@ -81,14 +86,60 @@ const FireCalculatorScreen = () => {
     );
   };
 
+
+
+  // const onChangeText = (key, value) => {
+  //   value = getRawValue(value);
+
+  //   setSumInsuredData((prev) => ({
+  //     ...prev,
+  //     [key]: value,
+  //   }));
+
+  // };
+
+  const onChangeText = (key, value) => {
+    value = getRawValue(value);
+
+    setSumInsuredData((prev) => {
+      const updatedData = {
+        ...prev,
+        [key]: value,
+      };
+
+      if (key === "buildingSI" || key === "plantAndMachinerySI" || key === "stockSI" || key === "furnitureFixturesFittingsSI" || key === "otherContentsSI") {
+        setTotalSumInsured(getTotalSumInsured(updatedData));
+      }
+
+      return updatedData;
+    });
+  };
+
+
+  const getTotalSumInsured = (data) => {
+    return (
+      (parseFloat(data.buildingSI) || 0) +
+      (parseFloat(data.plantAndMachinerySI) || 0) +
+      (parseFloat(data.stockSI) || 0) +
+      (parseFloat(data.furnitureFixturesFittingsSI) || 0) +
+      (parseFloat(data.otherContentsSI) || 0)
+    );
+  };
+
+
+
   const handleCalculate = async () => {
     try {
       setLoading(true);
-      console.log("from", form);
-      const response = await calculateFireInsuranceAPI(form);
+      const updateData = {
+        ...form,
+        "sumInsured": sumInsuredData,
+        "addons": selectedAddons
+      };
+      console.log("updateData", updateData);
+      const response = await calculateFireInsuranceAPI(updateData);
       console.log("response", response);
       setResult(response.data?.data);
-
     } catch (error) {
       Alert.alert(
         "Error",
@@ -107,7 +158,7 @@ const FireCalculatorScreen = () => {
           <BackHeader title={'Fire Calculator'} subTitle={'Calculate premium for Fire Insurance policies.'} />
           <KeyboardAvoidingView
             behavior='padding'
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: color.screenBackground }}
           >
             <View style={globalStyles.innerContainer}>
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
@@ -204,7 +255,9 @@ const FireCalculatorScreen = () => {
 
                     <View style={{ display: expanded.discounts ? 'flex' : 'none', marginTop: 10 }}>
                       <InputField value={form.discounts?.iibDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "iibDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'IIB Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
-                      <InputField value={form.discounts?.natcatDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "natcatDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'Natcat Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={form.discounts?.eqDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "eqDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'Earthquake Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={form.discounts?.stfiDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "stfiDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'STFI Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+
                     </View>
                   </View>
 
@@ -226,30 +279,78 @@ const FireCalculatorScreen = () => {
                     </TouchableOpacity>
 
                     <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                      <InputField value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                      <InputField value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                      <InputField value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                      <InputField value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                      <InputField value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-
+                      <InputField value={formatIndianCurrency(sumInsuredData.buildingSI)} onChangeText={(text) => onChangeText("buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={formatIndianCurrency(sumInsuredData.plantAndMachinerySI)} onChangeText={(text) => onChangeText("plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={formatIndianCurrency(sumInsuredData.stockSI)} onChangeText={(text) => onChangeText("stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={formatIndianCurrency(sumInsuredData.furnitureFixturesFittingsSI)} onChangeText={(text) => onChangeText("furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={formatIndianCurrency(sumInsuredData.otherContentsSI)} onChangeText={(text) => onChangeText("otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={formatIndianCurrency(totalSumInsured)} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                     </View>
                   </View>
 
 
+                 {totalSumInsured > 500000000 && <AddonSelector
+                    value={selectedAddons}
+                    onChange={setSelectedAddons}
+                  />
+}
+
                   <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
 
-                  {result && <ResultCardComponent heading='Fire' value={result?.premium?.grossPremium || 0.00}
+
+
+
+                  {result && <ResultCardComponent heading='IAR' value={result?.premium?.grossPremium || 0.00}
                     children={
                       <View style={{ gap: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
-                          <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>Net Premium</Text>
-                          <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premium?.netPremium || 0}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                          <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Net Premium</Text>
+                          <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.premium?.netPremium || 0}</Text>
                         </View>
 
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
-                          <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>GST</Text>
-                          <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premium?.gst || 0}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                          <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>GST</Text>
+                          <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.premium?.gst || 0}</Text>
                         </View>
+
+                        {viewButton && <TouchableOpacity hitSlop={40} onPress={() => setViewButton(false)} style={{ paddingBottom: 6, paddingRight: 10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                          <Text style={{ color: color.primaryBlueDark, textDecorationLine: 'underline' }}>View Rates</Text>
+                        </TouchableOpacity>}
+
+                        {!viewButton && <View style={{ gap: 10, }}>
+                          <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Rates</Text>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>IIB Rate</Text>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.iibRate}</Text>
+                          </View>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Earthquake Rate</Text>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.earthquakeRate}</Text>
+                          </View>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>STFI Rate</Text>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.stfiRate}</Text>
+                          </View>
+
+                          {result?.rates?.terrorismRate && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Terrorism Rate</Text>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.terrorismRate}</Text>
+                          </View>}
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: '#EEF4FC', marginBottom: 10, padding: 5 }}>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '600' }}>Final Fire Rate</Text>
+                            <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>{result?.rates?.finalFireRate}</Text>
+                          </View>
+
+                        </View>}
+
+                        {!viewButton && <TouchableOpacity hitSlop={40} onPress={() => setViewButton(true)} style={{ paddingBottom: 6, paddingRight: 10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                          <Text style={{ color: color.primaryBlueDark, textDecorationLine: 'underline' }}>Hide Rates</Text>
+                        </TouchableOpacity>}
+
                       </View>
                     }
                   />}

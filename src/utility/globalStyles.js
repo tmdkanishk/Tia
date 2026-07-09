@@ -13,9 +13,6 @@ export const globalStyles = StyleSheet.create({
 
 
     newContainer: {
-        // backgroundColor: color.screenBackground,
-        backgroundColor: color.cardBackground,
-        // paddingHorizontal: 12,
         height: '100%',
         width: '100%',
         backgroundColor: color.primaryBlueDark,

@@ -143,3 +143,15 @@ export const getExtention = filename => {
   return /[.]/.exec(filename) ? /[^.]+$/.exec(filename) : undefined;
 };
 
+
+export const formatIndianCurrency = (value) => {
+  if (!value) return '';
+  const num = value.toString().replace(/,/g, '');
+  if (isNaN(num)) return '';
+  return Number(num).toLocaleString('en-IN');
+};
+
+export const getRawValue = (value) => {
+  return String(value).replace(/,/g, '');
+};
+
