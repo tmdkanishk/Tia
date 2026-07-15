@@ -289,11 +289,11 @@ const FireCalculatorScreen = () => {
                   </View>
 
 
-                 {totalSumInsured > 500000000 && <AddonSelector
+                  {totalSumInsured > 500000000 && <AddonSelector
                     value={selectedAddons}
                     onChange={setSelectedAddons}
                   />
-}
+                  }
 
                   <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
 

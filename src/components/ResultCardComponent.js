@@ -9,10 +9,10 @@ const ResultCardComponent = ({
 }) => {
     return (
         <View style={{ borderWidth: 1, borderRadius: 12, borderColor: color.borderColor, padding: 10 , gap:10}}>
-            <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Premimum {heading} Summary</Text>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Premium Summary</Text>
             <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.primaryBlueDark, padding: 20, gap:12 ,backgroundColor: color.lightBlueBackground }}>
-                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 16 }}>Final Premimum (Incl GST)</Text>
-                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 24, fontWeight:'600' }}>₹ {value}</Text>
+                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 16 }}>Final Premium (Incl GST)</Text>
+                <Text style={{ textAlign: 'center', color: color.primaryBlueDark, fontSize: 24, fontWeight:'600' }}>₹ {value}</Text> 
             </View>
             {
                 children

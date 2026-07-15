@@ -144,11 +144,19 @@ export const getExtention = filename => {
 };
 
 
+// export const formatIndianCurrency = (value) => {
+//   if (!value) return '';
+//   const num = value.toString().replace(/,/g, '');
+//   if (isNaN(num)) return '';
+//   return Number(num).toLocaleString('en-IN');
+// };
+
+
 export const formatIndianCurrency = (value) => {
   if (!value) return '';
   const num = value.toString().replace(/,/g, '');
   if (isNaN(num)) return '';
-  return Number(num).toLocaleString('en-IN');
+  return Number(num).toLocaleString('en-US');
 };
 
 export const getRawValue = (value) => {
