@@ -144,22 +144,53 @@ export const getExtention = filename => {
 };
 
 
-// export const formatIndianCurrency = (value) => {
-//   if (!value) return '';
-//   const num = value.toString().replace(/,/g, '');
-//   if (isNaN(num)) return '';
-//   return Number(num).toLocaleString('en-IN');
-// };
-
-
-export const formatIndianCurrency = (value) => {
-  if (!value) return '';
-  const num = value.toString().replace(/,/g, '');
-  if (isNaN(num)) return '';
-  return Number(num).toLocaleString('en-US');
+export const getRawValue = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).replace(/,/g, '');
 };
 
-export const getRawValue = (value) => {
-  return String(value).replace(/,/g, '');
+export const formatIndianCurrency = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  const raw = getRawValue(value);
+  if (raw === '') return '';
+  if (raw === '.') return '0.';
+  if (!/^\d*\.?\d*$/.test(raw)) return '';
+
+  const hasDecimal = raw.includes('.');
+  const [intPartRaw, decPart = ''] = raw.split('.');
+  const intPart = intPartRaw === '' ? '0' : intPartRaw;
+
+  let formattedInt = intPart;
+  if (intPart.length > 3) {
+    const last3 = intPart.slice(-3);
+    const rest = intPart.slice(0, -3);
+    formattedInt = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + last3;
+  }
+
+  return hasDecimal ? `${formattedInt}.${decPart}` : formattedInt;
+};
+
+export const formatUSCurrency = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  const raw = getRawValue(value);
+  if (raw === '') return '';
+  if (raw === '.') return '0.';
+  if (!/^\d*\.?\d*$/.test(raw)) return '';
+
+  const hasDecimal = raw.includes('.');
+  const [intPartRaw, decPart = ''] = raw.split('.');
+  const intPart = intPartRaw === '' ? '0' : intPartRaw;
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  return hasDecimal ? `${formattedInt}.${decPart}` : formattedInt;
+};
+
+export const toNumber = (value) => {
+  const raw = getRawValue(value);
+  if (raw === '' || raw === '.') return 0;
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : 0;
 };
 

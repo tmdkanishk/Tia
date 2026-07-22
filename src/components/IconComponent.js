@@ -44,6 +44,7 @@ import dashbin from '../assets/images/dashbin.png'
 import plugin from '../assets/images/plugin.png'
 import excelFile from '../assets/images/excelFile.png'
 import pdfFile from '../assets/images/pdfFile.png'
+import customrates from '../assets/images/customRates.png'
 
 
 
@@ -94,8 +95,8 @@ export const icons = {
     delete: dashbin,
     plugin: plugin,
     excelFile: excelFile,
-    pdfFile, pdfFile
-
+    pdfFile: pdfFile,
+    customrates: customrates
 
 
 }
