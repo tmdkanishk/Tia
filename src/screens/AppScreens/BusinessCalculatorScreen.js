@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Dimensions, Image, } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Dimensions, Image, Alert, } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { IconComponent, icons } from '../../components/IconComponent'
 import InputField from '../../components/InputField'
@@ -7,12 +7,38 @@ import { calculatBusinessIndurance } from '../../features/businessInsurance/busi
 import ResultCardComponent from '../../components/ResultCardComponent'
 import { color } from '../../utility/color'
 import { globalStyles } from '../../utility/globalStyles'
-import { riskCovers } from '../../utility/helper'
+import { riskCovers, formatUSCurrency, getRawValue, toNumber } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
 import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 
+const customRatesLabels = {
+    machineryBreakdown: 'Machinery Breakdown',
+    boilerPressurePlant: 'Boiler Pressure Plant',
+    electronicEquipment: 'Electronic Equipment',
+    portableEquipment: 'Portable Equipment',
+    moneyInsurance: 'Money Insurance',
+    fidelityGuarantee: 'Fidelity Guarantee',
+    personalAccident: 'Personal Accident',
+    publicLiability: 'Public Liability',
+    plateGlass: 'Plate Glass',
+};
+
+const riskCoverUiToFormKey = {
+    terrorism: 'terrorism',
+    burglary: 'burglary',
+    machinery_breakdown: 'machineryBreakdown',
+    boiler_pressure_plant: 'boilerPressurePlant',
+    electronic_equipment: 'electronicEquipment',
+    portable_equipment: 'portableEquipment',
+    money_insurance: 'moneyInsurance',
+    fidelity_guarantee: 'fidelityGuarantee',
+    personal_accident: 'personalAccident',
+    business_interruption: 'businessInterruption',
+    public_liability: 'publicLiability',
+    plate_glass: 'plateGlass',
+};
 
 const BusinessCalculatorScreen = () => {
     const navigation = useNavigation();
@@ -23,6 +49,7 @@ const BusinessCalculatorScreen = () => {
         insuredDetails: true,
         discounts: true,
         sumInsured: true,
+        customRates: true,
         fireAllied: false,
         burglaryHousebreaking: false,
         machineryBreakdown: false,
@@ -40,6 +67,7 @@ const BusinessCalculatorScreen = () => {
     const [riskCover, setRiskCover] = useState(riskCovers)
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [viewButton, setViewButton] = useState(true);
 
     const [form, setForm] = useState({
         "customerDetails": {
@@ -55,31 +83,45 @@ const BusinessCalculatorScreen = () => {
             "terrorism": true,
             "burglary": true,
             "fireAndAlliedPerils": false,
-            "machineryBreakdown": false,
-            "boilerPressurePlant": false,
-            "electronicEquipment": false,
-            "portableEquipment": false,
-            "moneyInsurance": false,
-            "fidelityGuarantee": false,
-            "personalAccident": false,
-            "businessInterruption": false,
-            "publicLiability": false,
-            "plateGlass": false
+            "machineryBreakdown": true,
+            "boilerPressurePlant": true,
+            "electronicEquipment": true,
+            "portableEquipment": true,
+            "moneyInsurance": true,
+            "fidelityGuarantee": true,
+            "personalAccident": true,
+            "businessInterruption": true,
+            "publicLiability": true,
+            "plateGlass": true
         },
 
         "discounts": {
-            "iibDiscountPercent": 0,
-            "natcatDiscountPercent": 0
+            "iibDiscountPercent": "",
+            "eqDiscountPercent": "",
+            "stfiDiscountPercent": ""
         },
 
         "sumInsured": {
-            "buildingSI": 0,
-            "plantAndMachinerySI": 0,
-            "stockSI": 0,
-            "furnitureFixturesFittingsSI": 0,
-            "otherContentsSI": 0,
-            "totalSI": 0
+            "buildingSI": "",
+            "plantAndMachinerySI": "",
+            "stockSI": "",
+            "furnitureFixturesFittingsSI": "",
+            "otherContentsSI": "",
+            "totalSI": ""
         },
+
+        "customRates": {
+            "machineryBreakdown": 0.25,
+            "boilerPressurePlant": 1.8,
+            "electronicEquipment": 0.25,
+            "portableEquipment": 1,
+            "moneyInsurance": 0.5,
+            "fidelityGuarantee": 7.5,
+            "personalAccident": 1.5,
+            "publicLiability": 0.036,
+            "plateGlass": 0.05
+        },
+
 
         "sections": {
 
@@ -168,64 +210,33 @@ const BusinessCalculatorScreen = () => {
     });
 
 
-    const getUpdatedRiskCovers = (data) => {
+    const getUpdatedRiskCovers = (data, coversUi = riskCover) => {
         const sections = data.sections;
+
+        const selectedFromUi = coversUi.reduce((acc, item) => {
+            const formKey = riskCoverUiToFormKey[item.key];
+            if (formKey) {
+                acc[formKey] = !!item.selected;
+            }
+            return acc;
+        }, {});
 
         return {
             ...data,
 
             riskCovers: {
                 ...data.riskCovers,
+                ...selectedFromUi,
 
                 fireAndAlliedPerils:
-                    sections.section1.buildingSI > 0 ||
-                    sections.section1.plantAndMachinerySI > 0 ||
-                    sections.section1.stockSI > 0 ||
-                    sections.section1.furnitureFixturesFittingsSI > 0 ||
-                    sections.section1.otherContentsSI > 0 ||
-                    sections.section1.earthquakeSI > 0 ||
-                    sections.section1.stfiSI > 0 ||
-                    sections.section1.terrorismSI > 0,
-
-                machineryBreakdown:
-                    sections.section3A.machineryBreakdownSI > 0,
-
-                boilerPressurePlant:
-                    sections.section3B.boilerPressurePlantSI > 0 ||
-                    sections.section3B.ownersSurroundingPropertySI > 0 ||
-                    sections.section3B.thirdPartyLiabilitySI > 0,
-
-                electronicEquipment:
-                    sections.section4.electronicEquipmentSI > 0,
-
-                portableEquipment:
-                    sections.section5.portableEquipmentSI > 0,
-
-                moneyInsurance:
-                    sections.section6.moneyInTransitSI > 0 ||
-                    sections.section6.moneyInCounterSI > 0 ||
-                    sections.section6.moneyInSafeSI > 0,
-
-                fidelityGuarantee:
-                    sections.section7.numberOfEmployees > 0 ||
-                    sections.section7.perEmployeeSI > 0,
-
-                personalAccident:
-                    sections.section8.tableA_DeathBenefitOnlySI > 0 ||
-                    sections.section8.tableB_DeathPlusPTDSI > 0 ||
-                    sections.section8.tableC_DeathPTDPPDSI > 0 ||
-                    sections.section8.tableD_DeathPTDPPDTTDSI > 0 ||
-                    sections.section8.totalEmployees > 0,
-
-                businessInterruption:
-                    sections.section9.businessInterruptionSI > 0 ||
-                    sections.section9.businessInterruptionTerrorismSI > 0,
-
-                publicLiability:
-                    sections.section10.publicLiabilitySI > 0,
-
-                plateGlass:
-                    sections.section11.plateGlassSI > 0,
+                    toNumber(sections.section1.buildingSI) > 0 ||
+                    toNumber(sections.section1.plantAndMachinerySI) > 0 ||
+                    toNumber(sections.section1.stockSI) > 0 ||
+                    toNumber(sections.section1.furnitureFixturesFittingsSI) > 0 ||
+                    toNumber(sections.section1.otherContentsSI) > 0 ||
+                    toNumber(sections.section1.earthquakeSI) > 0 ||
+                    toNumber(sections.section1.stfiSI) > 0 ||
+                    toNumber(sections.section1.terrorismSI) > 0,
             }
         };
     };
@@ -238,6 +249,161 @@ const BusinessCalculatorScreen = () => {
                 [field]: value
             }
         }));
+    };
+
+    const handleSumInsuredChange = (field, text) => {
+        const raw = getRawValue(text);
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+        const formatted = formatUSCurrency(raw);
+
+        setForm(prev => {
+            const updatedSumInsured = {
+                ...prev.sumInsured,
+                [field]: formatted,
+            };
+
+            const totalSumInsured =
+                toNumber(updatedSumInsured.buildingSI) +
+                toNumber(updatedSumInsured.plantAndMachinerySI) +
+                toNumber(updatedSumInsured.stockSI) +
+                toNumber(updatedSumInsured.furnitureFixturesFittingsSI) +
+                toNumber(updatedSumInsured.otherContentsSI);
+
+            const formattedTotal = totalSumInsured > 0 ? formatUSCurrency(String(totalSumInsured)) : '';
+            updatedSumInsured.totalSI = formattedTotal;
+
+            console.log("totalSumInsured", {
+                buildingSI: toNumber(updatedSumInsured.buildingSI),
+                plantAndMachinerySI: toNumber(updatedSumInsured.plantAndMachinerySI),
+                stockSI: toNumber(updatedSumInsured.stockSI),
+                furnitureFixturesFittingsSI: toNumber(updatedSumInsured.furnitureFixturesFittingsSI),
+                otherContentsSI: toNumber(updatedSumInsured.otherContentsSI),
+                totalSumInsured,
+            });
+
+            const totalBurglarySI =
+                toNumber(updatedSumInsured.plantAndMachinerySI) +
+                toNumber(updatedSumInsured.stockSI) +
+                toNumber(updatedSumInsured.furnitureFixturesFittingsSI) +
+                toNumber(updatedSumInsured.otherContentsSI);
+
+            return {
+                ...prev,
+                sumInsured: updatedSumInsured,
+                sections: {
+                    ...prev.sections,
+                    section1: {
+                        ...prev.sections.section1,
+                        buildingSI: updatedSumInsured.buildingSI,
+                        plantAndMachinerySI: updatedSumInsured.plantAndMachinerySI,
+                        stockSI: updatedSumInsured.stockSI,
+                        furnitureFixturesFittingsSI: updatedSumInsured.furnitureFixturesFittingsSI,
+                        otherContentsSI: updatedSumInsured.otherContentsSI,
+                        earthquakeSI: formattedTotal,
+                        stfiSI: formattedTotal,
+                        terrorismSI: formattedTotal,
+                    },
+                    section2: {
+                        ...prev.sections.section2,
+                        totalBurglarySI: formatUSCurrency(String(totalBurglarySI)),
+                        plantAndMachinerySI: updatedSumInsured.plantAndMachinerySI,
+                        stockSI: updatedSumInsured.stockSI,
+                        furnitureFixturesFittingsSI: updatedSumInsured.furnitureFixturesFittingsSI,
+                        otherContentsSI: updatedSumInsured.otherContentsSI,
+                    },
+                },
+            };
+        });
+    };
+
+    const handleSectionAmountChange = (sectionKey, field, text) => {
+        const raw = getRawValue(text);
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+        handleSectionChange(sectionKey, field, formatUSCurrency(raw));
+    };
+
+    const handleDiscountChange = (field, text) => {
+        const raw = getRawValue(text);
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+
+        if (raw === '' || raw === '.') {
+            handleChange('discounts', field, raw === '.' ? '0.' : '');
+            return;
+        }
+
+        const num = Number(raw);
+        if (!Number.isFinite(num) || num < 0 || num > 100) return;
+
+        handleChange('discounts', field, raw);
+    };
+
+    const handleDiscountEndEditing = (field) => {
+        const raw = getRawValue(form.discounts[field]);
+        if (raw === '' || raw === '.') {
+            handleChange('discounts', field, '');
+            return;
+        }
+
+        let num = Number(raw);
+        if (!Number.isFinite(num) || num < 0) num = 0;
+        if (num > 100) num = 100;
+        handleChange('discounts', field, String(num));
+    };
+
+    const handleCustomRateChange = (field, text) => {
+        const raw = getRawValue(text);
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+
+        if (raw === '' || raw === '.') {
+            handleChange('customRates', field, raw === '.' ? '0.' : '');
+            return;
+        }
+
+        const num = Number(raw);
+        if (!Number.isFinite(num) || num < 0 || num > 100) return;
+
+        handleChange('customRates', field, formatUSCurrency(raw));
+    };
+
+    const handleCustomRateEndEditing = (field) => {
+        const raw = getRawValue(form.customRates[field]);
+        if (raw === '' || raw === '.') {
+            handleChange('customRates', field, '0');
+            return;
+        }
+
+        let num = Number(raw);
+        if (!Number.isFinite(num) || num < 0) num = 0;
+        if (num > 100) num = 100;
+        handleChange('customRates', field, formatUSCurrency(String(num)));
+    };
+
+    const sanitizeFormForApi = (data) => {
+        const sanitizeLeaf = (value) => {
+            if (typeof value === 'string' && /^[\d,]*\.?\d*$/.test(value) && value !== '') {
+                return toNumber(value);
+            }
+            return value;
+        };
+
+        const sanitizeObject = (obj) =>
+            Object.keys(obj).reduce((acc, key) => {
+                const value = obj[key];
+                if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+                    acc[key] = sanitizeObject(value);
+                } else {
+                    acc[key] = sanitizeLeaf(value);
+                }
+                return acc;
+            }, {});
+
+        return {
+            ...data,
+            discounts: sanitizeObject(data.discounts || {}),
+            sumInsured: sanitizeObject(data.sumInsured || {}),
+            customRates: sanitizeObject(data.customRates || {}),
+            sections: sanitizeObject(data.sections || {}),
+        };
     };
 
     const handleSectionChange = (sectionKey, field, value) => {
@@ -268,67 +434,54 @@ const BusinessCalculatorScreen = () => {
             if (terrorism === false) {
                 updatedForm.sections.section1.terrorismSI = 0;
             }
-            console.log("updatedForm", updatedForm);
+
+            const payload = sanitizeFormForApi(updatedForm);
+            console.log("updatedForm", payload);
             // update state
             setForm(updatedForm);
-            const response = await calculatBusinessIndurance(updatedForm);
+            const response = await calculatBusinessIndurance(payload);
             console.log("response", response);
+
+            if (response?.data?.success === false) {
+                Alert.alert(
+                    "Error",
+                    response?.data?.message || "Something went wrong"
+                );
+                setResult(null);
+                return;
+            }
+
             setResult(response.data?.data);
+            setViewButton(true);
 
         } catch (error) {
-            console.log("error", error.response.data);
+            console.log("error", error?.response?.data);
+            Alert.alert(
+                "Error",
+                error?.response?.data?.message || "Something went wrong"
+            );
+            setResult(null);
         } finally {
             setLoading(false);
         }
     }
 
-    const onHandleSubmitInput = () => {
-        let totalSumInsured =
-            Number(form.sumInsured.buildingSI || 0) +
-            Number(form.sumInsured.plantAndMachinerySI || 0) +
-            Number(form.sumInsured.stockSI || 0) +
-            Number(form.sumInsured.furnitureFixturesFittingsSI || 0) +
-            Number(form.sumInsured.otherContentsSI || 0);
-
-        console.log("totalSumInsured", totalSumInsured);
-
-        handleChange("sumInsured", "totalSI", totalSumInsured.toString());
-
-        // section1
-        handleSectionChange("section1", "buildingSI", form.sumInsured.buildingSI);
-        handleSectionChange("section1", "plantAndMachinerySI", form.sumInsured.plantAndMachinerySI);
-        handleSectionChange("section1", "stockSI", form.sumInsured.stockSI);
-        handleSectionChange("section1", "furnitureFixturesFittingsSI", form.sumInsured.furnitureFixturesFittingsSI);
-        handleSectionChange("section1", "otherContentsSI", form.sumInsured.otherContentsSI);
-        handleSectionChange("section1", "earthquakeSI", totalSumInsured.toString());
-        handleSectionChange("section1", "stfiSI", totalSumInsured.toString());
-        handleSectionChange("section1", "terrorismSI", totalSumInsured.toString());
-
-
-        // section2
-        let totalBurglarySI =
-            Number(form.sumInsured.plantAndMachinerySI || 0) +
-            Number(form.sumInsured.stockSI || 0) +
-            Number(form.sumInsured.furnitureFixturesFittingsSI || 0) +
-            Number(form.sumInsured.otherContentsSI || 0);
-
-        handleSectionChange("section2", "totalBurglarySI", totalBurglarySI.toString());
-
-        handleSectionChange("section2", "plantAndMachinerySI", form.sumInsured.plantAndMachinerySI);
-        handleSectionChange("section2", "stockSI", form.sumInsured.stockSI);
-        handleSectionChange("section2", "furnitureFixturesFittingsSI", form.sumInsured.furnitureFixturesFittingsSI)
-        handleSectionChange("section2", "otherContentsSI", form.sumInsured.otherContentsSI)
-
-    }
-
     const toggleRiskCover = (key) => {
+        const current = riskCover.find((item) => item.key === key)?.selected;
+        const nextSelected = !current;
+
         setRiskCover((prev) =>
             prev.map((item) =>
                 item.key === key
-                    ? { ...item, selected: !item.selected }
+                    ? { ...item, selected: nextSelected }
                     : item
             )
         );
+
+        const formKey = riskCoverUiToFormKey[key];
+        if (formKey) {
+            handleChange('riskCovers', formKey, nextSelected);
+        }
     };
 
     const isRiskCoverSelected = (key) => {
@@ -405,15 +558,13 @@ const BusinessCalculatorScreen = () => {
 
                                             {
                                                 riskCover.map((item, index) => (
-                                                    <View key={index} style={{ width: width * 0.43, borderWidth: 1, padding: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 8, borderColor: color.borderColor }}>
+                                                    <Pressable key={index} onPress={() => toggleRiskCover(item.key)} style={{ width: width * 0.43, borderWidth: 1, padding: 10, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 8, borderColor: color.borderColor }}>
                                                         <IconComponent icon={item?.icon} size={24} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
                                                         <Text style={{ width: '55%', fontWeight: '400', color: item.selected ? color.mainText : color.secondaryText }}>
                                                             {item.label}
                                                         </Text>
-                                                        <Pressable hitSlop={40} onPress={() => toggleRiskCover(item.key)}>
-                                                            <IconComponent icon={item.selected ? icons.switchright : icons.switchleft} size={30} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
-                                                        </Pressable>
-                                                    </View>
+                                                        <IconComponent icon={item.selected ? icons.switchright : icons.switchleft} size={30} tintColor={item.selected ? color.primaryBlueDark : color.secondaryText} />
+                                                    </Pressable>
                                                 ))
                                             }
                                         </View>
@@ -437,8 +588,9 @@ const BusinessCalculatorScreen = () => {
 
 
                                         <View style={{ display: expanded.discounts ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.discounts?.iibDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "iibDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'IIB Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.discounts?.natcatDiscountPercent} maxLength={3} onChangeText={(text) => handleChange("discounts", "natcatDiscountPercent", text)} keyboardType='numeric' placeholder='0' label={'Natcat Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.discounts?.iibDiscountPercent} onChangeText={(text) => handleDiscountChange("iibDiscountPercent", text)} onEndEditing={() => handleDiscountEndEditing("iibDiscountPercent")} keyboardType='numeric' placeholder='0' label={'IIB Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.discounts?.eqDiscountPercent} onChangeText={(text) => handleDiscountChange("eqDiscountPercent", text)} onEndEditing={() => handleDiscountEndEditing("eqDiscountPercent")} keyboardType='numeric' placeholder='0' label={'Eq Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.discounts?.stfiDiscountPercent} onChangeText={(text) => handleDiscountChange("stfiDiscountPercent", text)} onEndEditing={() => handleDiscountEndEditing("stfiDiscountPercent")} keyboardType='numeric' placeholder='0' label={'STFI Discount %'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
 
@@ -459,12 +611,44 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.sumInsured ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.buildingSI} onChangeText={(text) => handleChange("sumInsured", "buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.plantAndMachinerySI} onChangeText={(text) => handleChange("sumInsured", "plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.stockSI} onChangeText={(text) => handleChange("sumInsured", "stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.furnitureFixturesFittingsSI} onChangeText={(text) => handleChange("sumInsured", "furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField onEndEditing={onHandleSubmitInput} value={form.sumInsured.otherContentsSI} onChangeText={(text) => handleChange("sumInsured", "otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sumInsured.totalSI} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.buildingSI)} onChangeText={(text) => handleSumInsuredChange("buildingSI", text)} keyboardType='numeric' placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.plantAndMachinerySI)} onChangeText={(text) => handleSumInsuredChange("plantAndMachinerySI", text)} keyboardType='numeric' placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.stockSI)} onChangeText={(text) => handleSumInsuredChange("stockSI", text)} keyboardType='numeric' placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.furnitureFixturesFittingsSI)} onChangeText={(text) => handleSumInsuredChange("furnitureFixturesFittingsSI", text)} keyboardType='numeric' placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.otherContentsSI)} onChangeText={(text) => handleSumInsuredChange("otherContentsSI", text)} keyboardType='numeric' placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sumInsured.totalSI)} editable={false} placeholder='0' label={'Total Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                        </View>
+                                    </View>
+
+                                    <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
+
+                                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 }} onPress={() => setExpanded(prev => ({ ...prev, customRates: !prev.customRates }))}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: color.primaryBlueDark, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <IconComponent icon={icons.customrates} tintColor={color.white} size={18} />
+                                                </View>
+                                                <Text style={{ fontSize: 16, color: color.mainText, fontWeight: '600' }}>Custom Rates </Text>
+                                            </View>
+
+                                            {
+                                                expanded.customRates ? <IconComponent icon={icons.uparrow} size={18} tintColor={color.icon} />
+                                                    : <IconComponent icon={icons.downarrow} size={18} tintColor={color.icon} />
+                                            }
+                                        </TouchableOpacity>
+
+                                        <View style={{ display: expanded.customRates ? 'flex' : 'none', marginTop: 10 }}>
+                                            {Object.entries(form.customRates).map(([key, value]) => (
+                                                <InputField
+                                                    key={key}
+                                                    value={formatUSCurrency(value)}
+                                                    onChangeText={(text) => handleCustomRateChange(key, text)}
+                                                    onEndEditing={() => handleCustomRateEndEditing(key)}
+                                                    keyboardType='numeric'
+                                                    placeholder='0'
+                                                    label={customRatesLabels[key] || key}
+                                                    containerInputStyle={{ paddingVertical: 6 }}
+                                                />
+                                            ))}
                                         </View>
                                     </View>
 
@@ -485,14 +669,14 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.fireAllied ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section1.buildingSI} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.earthquakeSI} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section1.stfiSI} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={form.sections.section1.terrorismSI} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
+                                            <InputField value={formatUSCurrency(form.sections.section1.buildingSI)} editable={false} placeholder='0' label={'Building'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.plantAndMachinerySI)} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.stockSI)} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.furnitureFixturesFittingsSI)} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.otherContentsSI)} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.earthquakeSI)} editable={false} placeholder='0' label={'Earthquake'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section1.stfiSI)} editable={false} placeholder='0' label={'STFI'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            {riskCover.find(c => c.key == 'terrorism').selected && <InputField value={formatUSCurrency(form.sections.section1.terrorismSI)} editable={false} placeholder='0' label={'Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />}
                                         </View>
                                     </View>
 
@@ -514,11 +698,11 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.burglaryHousebreaking ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section2.totalBurglarySI} editable={false} placeholder='0' label={'Burglary & Housebreaking with theft & RSMD'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section2.plantAndMachinerySI} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section2.stockSI} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section2.furnitureFixturesFittingsSI} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section2.otherContentsSI} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section2.totalBurglarySI)} editable={false} placeholder='0' label={'Burglary & Housebreaking with theft & RSMD'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section2.plantAndMachinerySI)} editable={false} placeholder='0' label={'Plant & Machinery'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section2.stockSI)} editable={false} placeholder='0' label={'Stock'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section2.furnitureFixturesFittingsSI)} editable={false} placeholder='0' label={'Furniture Fixtures & Fittings'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section2.otherContentsSI)} editable={false} placeholder='0' label={'Other Contents'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
 
@@ -539,7 +723,7 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.machineryBreakdown ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section3A.machineryBreakdownSI} onChangeText={(text) => handleSectionChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section3A.machineryBreakdownSI)} onChangeText={(text) => handleSectionAmountChange("section3A", "machineryBreakdownSI", text)} keyboardType='numeric' placeholder='0' label={'Machinery Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                             <InputField value={form.sections.section3A.remarks} onChangeText={(text) => handleSectionChange("section3A", "remarks", text)} placeholder='eg. Remarks' label={'Remarks'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>)}
@@ -563,9 +747,9 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.boilerPressure ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section3B.boilerPressurePlantSI} onChangeText={(text) => handleSectionChange("section3B", "boilerPressurePlantSI", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section3B.ownersSurroundingPropertySI} onChangeText={(text) => handleSectionChange("section3B", "ownersSurroundingPropertySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section3B.thirdPartyLiabilitySI} onChangeText={(text) => handleSectionChange("section3B", "thirdPartyLiabilitySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section3B.boilerPressurePlantSI)} onChangeText={(text) => handleSectionAmountChange("section3B", "boilerPressurePlantSI", text)} keyboardType='numeric' placeholder='0' label={'BPP Value'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section3B.ownersSurroundingPropertySI)} onChangeText={(text) => handleSectionAmountChange("section3B", "ownersSurroundingPropertySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Owner's Surroding Property`} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section3B.thirdPartyLiabilitySI)} onChangeText={(text) => handleSectionAmountChange("section3B", "thirdPartyLiabilitySI", text)} keyboardType='numeric' placeholder={'0'} label={`BPP-Third Party Liabiilty`} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -586,7 +770,7 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.electronicEquipment ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section4.electronicEquipmentSI} onChangeText={(text) => handleSectionChange("section4", "electronicEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section4.electronicEquipmentSI)} onChangeText={(text) => handleSectionAmountChange("section4", "electronicEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'EEI Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
 
                                     </View>}
@@ -610,7 +794,7 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.portable ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section5.portableEquipmentSI} onChangeText={(text) => handleSectionChange("section5", "portableEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section5.portableEquipmentSI)} onChangeText={(text) => handleSectionAmountChange("section5", "portableEquipmentSI", text)} keyboardType='numeric' placeholder='0' label={'Portable Equipments Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -634,9 +818,9 @@ const BusinessCalculatorScreen = () => {
 
 
                                         <View style={{ display: expanded.money ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section6.moneyInTransitSI} onChangeText={(text) => handleSectionChange("section6", "moneyInTransitSI", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section6.moneyInCounterSI} onChangeText={(text) => handleSectionChange("section6", "moneyInCounterSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section6.moneyInSafeSI} onChangeText={(text) => handleSectionChange("section6", "moneyInSafeSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section6.moneyInTransitSI)} onChangeText={(text) => handleSectionAmountChange("section6", "moneyInTransitSI", text)} keyboardType='numeric' placeholder='0' label={'Money in transit'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section6.moneyInCounterSI)} onChangeText={(text) => handleSectionAmountChange("section6", "moneyInCounterSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Counter'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section6.moneyInSafeSI)} onChangeText={(text) => handleSectionAmountChange("section6", "moneyInSafeSI", text)} keyboardType='numeric' placeholder='0' label={'Money in Safe'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -659,8 +843,8 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.fidelityGuarantee ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section7.numberOfEmployees} onChangeText={(text) => { "section7", "numberOfEmployees", text }} keyboardType='numeric' placeholder='0' label={'No of Employees'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section7.perEmployeeSI} onChangeText={(text) => { "section7", "perEmployeeSI", text }} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section7.numberOfEmployees)} onChangeText={(text) => handleSectionAmountChange("section7", "numberOfEmployees", text)} keyboardType='numeric' placeholder='0' label={'No of Employees'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section7.perEmployeeSI)} onChangeText={(text) => handleSectionAmountChange("section7", "perEmployeeSI", text)} keyboardType='numeric' placeholder='0' label={'Per Employee Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -683,11 +867,11 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.personalAccident ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section8.tableA_DeathBenefitOnlySI} onChangeText={(text) => handleSectionChange("section8", "tableA_DeathBenefitOnlySI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section8.tableB_DeathPlusPTDSI} onChangeText={(text) => handleSectionChange("section8", "tableB_DeathPlusPTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section8.tableC_DeathPTDPPDSI} onChangeText={(text) => handleSectionChange("section8", "tableC_DeathPTDPPDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section8.tableD_DeathPTDPPDTTDSI} onChangeText={(text) => handleSectionChange("section8", "tableD_DeathPTDPPDTTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section8.totalEmployees} onChangeText={(text) => handleSectionChange("section8", "totalEmployees", text)} keyboardType='numeric' placeholder='0' label={'Total Employee'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section8.tableA_DeathBenefitOnlySI)} onChangeText={(text) => handleSectionAmountChange("section8", "tableA_DeathBenefitOnlySI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table A - Death Benefit Only)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section8.tableB_DeathPlusPTDSI)} onChangeText={(text) => handleSectionAmountChange("section8", "tableB_DeathPlusPTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table B - Death + PTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section8.tableC_DeathPTDPPDSI)} onChangeText={(text) => handleSectionAmountChange("section8", "tableC_DeathPTDPPDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table C - Death + PTD + PPD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section8.tableD_DeathPTDPPDTTDSI)} onChangeText={(text) => handleSectionAmountChange("section8", "tableD_DeathPTDPPDTTDSI", text)} keyboardType='numeric' placeholder='0' label={'Personal Accident  (Table D-Death+PTD + PPD + TTD)'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section8.totalEmployees)} onChangeText={(text) => handleSectionAmountChange("section8", "totalEmployees", text)} keyboardType='numeric' placeholder='0' label={'Total Employee'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -709,8 +893,8 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section9.businessInterruptionSI} onChangeText={(text) => handleSectionChange("section9", "grossProfitSumInsured", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={form.sections.section9.businessInterruptionTerrorismSI} onChangeText={(text) => handleSectionChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionSI)} onChangeText={(text) => handleSectionAmountChange("section9", "businessInterruptionSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionTerrorismSI)} onChangeText={(text) => handleSectionAmountChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>
                                     }
@@ -731,7 +915,7 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.publicLiability ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section10.publicLiabilitySI} onChangeText={(text) => handleSectionChange("section10", "publicLiabilitySI", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section10.publicLiabilitySI)} onChangeText={(text) => handleSectionAmountChange("section10", "publicLiabilitySI", text)} keyboardType='numeric' placeholder='0' label={'Public Liability Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -754,7 +938,7 @@ const BusinessCalculatorScreen = () => {
 
 
                                         <View style={{ display: expanded.plateGlassInsurance ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.sections.section11.plateGlassSI} onChangeText={(text) => handleSectionChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section11.plateGlassSI)} onChangeText={(text) => handleSectionAmountChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
 
@@ -772,6 +956,61 @@ const BusinessCalculatorScreen = () => {
                                                     <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>GST</Text>
                                                     <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result?.premiumSummary?.gst || 0}</Text>
                                                 </View>
+
+                                                {viewButton && result?.rates && Object.keys(result.rates).length > 0 && (
+                                                    <TouchableOpacity hitSlop={40} onPress={() => setViewButton(false)} style={{ paddingBottom: 6, paddingRight: 10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                                                        <Text style={{ color: color.primaryBlueDark, textDecorationLine: 'underline' }}>View Rates</Text>
+                                                    </TouchableOpacity>
+                                                )}
+
+                                                {!viewButton && result?.rates && (
+                                                    <View style={{ gap: 10 }}>
+                                                        <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Rates</Text>
+
+                                                        {[
+                                                            { key: 'iibRate', label: 'IIB Rate' },
+                                                            { key: 'eqRate', label: 'Earthquake Rate' },
+                                                            { key: 'stfiRate', label: 'STFI Rate' },
+                                                            { key: 'terrorismRate', label: 'Terrorism Rate' },
+                                                            { key: 'fireRate', label: 'Fire Rate' },
+                                                        ].map(({ key, label }) => (
+                                                            result.rates[key] != null && (
+                                                                <View key={key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
+                                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>{label}</Text>
+                                                                    <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result.rates[key]}</Text>
+                                                                </View>
+                                                            )
+                                                        ))}
+
+                                                        {result.rates.fireRateBreakdown && (
+                                                            <>
+                                                                <Text style={{ fontSize: 16, fontWeight: '600', color: color.mainText, marginTop: 4 }}>Fire Rate Breakdown</Text>
+
+                                                                {[
+                                                                    { key: 'netIibRate', label: 'Net IIB Rate' },
+                                                                    { key: 'netEqRate', label: 'Net Earthquake Rate' },
+                                                                    { key: 'netStfiRate', label: 'Net STFI Rate' },
+                                                                    { key: 'netCatRate', label: 'Net Cat Rate' },
+                                                                    { key: 'terrorismApplied', label: 'Terrorism Applied' },
+                                                                    { key: 'fireRate', label: 'Final Fire Rate' },
+                                                                ].map(({ key, label }) => (
+                                                                    result.rates.fireRateBreakdown[key] != null && (
+                                                                        <View key={key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderColor: color.borderColor, marginBottom: 10, padding: 5 }}>
+                                                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '600' }}>{label}</Text>
+                                                                            <Text style={{ fontSize: 13, color: color.primaryBlueDark, fontWeight: '700' }}>{result.rates.fireRateBreakdown[key]}</Text>
+                                                                        </View>
+                                                                    )
+                                                                ))}
+                                                            </>
+                                                        )}
+                                                    </View>
+                                                )}
+
+                                                {!viewButton && result?.rates && (
+                                                    <TouchableOpacity hitSlop={40} onPress={() => setViewButton(true)} style={{ paddingBottom: 6, paddingRight: 10, alignItems: 'center', alignSelf: 'flex-end' }}>
+                                                        <Text style={{ color: color.primaryBlueDark, textDecorationLine: 'underline' }}>Hide Rates</Text>
+                                                    </TouchableOpacity>
+                                                )}
                                             </View>
                                         }
                                     />}
