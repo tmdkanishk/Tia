@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
 
-const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Cr
+const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Crore in paise (50,00,00,000)
 
 const customRatesLabels = {
     machineryBreakdown: 'Machinery Breakdown',
