@@ -1,0 +1,128 @@
+{
+    "success": true,
+    "data": {
+        "customerDetails": {
+            "customerName": "Test",
+            "address": "Gahajaj",
+            "pinCode": "141010",
+            "riskCode": "4001",
+            "occupancy": "Storage of Non-hazardous goods subject to warranty that hazardous goods of Category I, II, III, Coir waste, Coir fibre and Caddies are not stored ther",
+            "description": null
+        },
+        "totalSumInsured": 6170203450,
+        "riskCoversSelected": {
+            "terrorism": true,
+            "burglary": true,
+            "fireAndAlliedPerils": true,
+            "machineryBreakdown": true,
+            "boilerPressurePlant": true,
+            "electronicEquipment": true,
+            "portableEquipment": true,
+            "moneyInsurance": true,
+            "fidelityGuarantee": true,
+            "personalAccident": true,
+            "businessInterruption": true,
+            "publicLiability": true,
+            "plateGlass": true
+        },
+        "discountsApplied": {
+            "iibDiscountPercent": 0,
+            "eqDiscountPercent": 0,
+            "stfiDiscountPercent": 0
+        },
+        "rates": {
+            "iibRate": 0.46,
+            "stfiRate": 0.52,
+            "terrorismRate": 0.21,
+            "eqRate": 0.25,
+            "fireRate": 1.44,
+            "fireRateBreakdown": {
+                "netIibRate": 0.46,
+                "netEqRate": 0.25,
+                "netStfiRate": 0.52,
+                "netCatRate": 0.77,
+                "terrorismApplied": 0.21,
+                "fireRate": 1.44
+            }
+        },
+        "sectionRatesUsed": {
+            "machineryBreakdown": {
+                "rate": 0.25,
+                "basis": 1000
+            },
+            "boilerPressurePlant": {
+                "rate": 1.8,
+                "basis": 1000
+            },
+            "electronicEquipment": {
+                "rate": 0.25,
+                "basis": 1000
+            },
+            "portableEquipment": {
+                "rate": 1,
+                "basis": 100
+            },
+            "moneyInsurance": {
+                "rate": 0.5,
+                "basis": 100
+            },
+            "fidelityGuarantee": {
+                "rate": 7.5,
+                "basis": 100
+            },
+            "personalAccident": {
+                "rate": 1.5,
+                "basis": 100
+            },
+            "businessInterruption": {
+                "rate": 0.52,
+                "basis": 1000
+            },
+            "publicLiability": {
+                "rate": 0.036,
+                "basis": 1000
+            },
+            "plateGlass": {
+                "rate": 0.05,
+                "basis": 1000
+            },
+            "burglary": {
+                "rate": 0.05,
+                "basis": 1000
+            }
+        },
+        "sectionWiseSumInsured": {
+            "fireSumInsured": 6170203450,
+            "burglarySumInsured": 704555554,
+            "machineryBreakdownSumInsured": 89621374,
+            "boilerPressurePlantSumInsured": 0,
+            "electronicEquipmentSumInsured": 0,
+            "portableEquipmentSumInsured": 0,
+            "moneySumInsured": 0,
+            "fidelitySumInsured": 0,
+            "personalAccidentSumInsured": 0,
+            "businessInterruptionSumInsured": 0,
+            "publicLiabilitySumInsured": 35000000,
+            "plateGlassSumInsured": 5000000
+        },
+        "sectionWisePremiums": {
+            "firePremium": 8885092.968,
+            "burglaryPremium": 35227.7777,
+            "machineryBreakdownPremium": 22405.3435,
+            "boilerPressurePlantPremium": 0,
+            "electronicEquipmentPremium": 0,
+            "portableEquipmentPremium": 0,
+            "moneyInsurancePremium": 0,
+            "fidelityGuaranteePremium": 0,
+            "personalAccidentPremium": 0,
+            "businessInterruptionPremium": 0,
+            "publicLiabilityPremium": 1260,
+            "plateGlassPremium": 250
+        },
+        "premiumSummary": {
+            "netPremium": 8944236.0892,
+            "gst": 1609962.4961,
+            "grossPremium": 10554198.5853
+        }
+    }
+}
