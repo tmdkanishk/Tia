@@ -12,6 +12,9 @@ import CustomButton from '../../components/CustomButton'
 import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
+import AddonSelector from '../../components/AddonSelector'
+
+const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Cr
 
 const customRatesLabels = {
     machineryBreakdown: 'Machinery Breakdown',
@@ -68,6 +71,7 @@ const BusinessCalculatorScreen = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [viewButton, setViewButton] = useState(true);
+    const [selectedAddons, setSelectedAddons] = useState([]);
 
     const [form, setForm] = useState({
         "customerDetails": {
@@ -322,6 +326,25 @@ const BusinessCalculatorScreen = () => {
         handleSectionChange(sectionKey, field, formatUSCurrency(raw));
     };
 
+    const handleBusinessInterruptionChange = (text) => {
+        const raw = getRawValue(text);
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+        const formatted = formatUSCurrency(raw);
+        const terrorismSelected = isRiskCoverSelected('terrorism');
+
+        setForm(prev => ({
+            ...prev,
+            sections: {
+                ...prev.sections,
+                section9: {
+                    ...prev.sections.section9,
+                    businessInterruptionSI: formatted,
+                    ...(terrorismSelected ? { businessInterruptionTerrorismSI: formatted } : {}),
+                },
+            },
+        }));
+    };
+
     const handleDiscountChange = (field, text) => {
         const raw = getRawValue(text);
         if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
@@ -403,6 +426,10 @@ const BusinessCalculatorScreen = () => {
             sumInsured: sanitizeObject(data.sumInsured || {}),
             customRates: sanitizeObject(data.customRates || {}),
             sections: sanitizeObject(data.sections || {}),
+            addons: (data.addons || []).map(addon => ({
+                ...addon,
+                value: toNumber(addon.value),
+            })),
         };
     };
 
@@ -433,9 +460,15 @@ const BusinessCalculatorScreen = () => {
 
             if (terrorism === false) {
                 updatedForm.sections.section1.terrorismSI = 0;
+                updatedForm.sections.section9.businessInterruptionTerrorismSI = 0;
             }
 
-            const payload = sanitizeFormForApi(updatedForm);
+            const payload = sanitizeFormForApi({
+                ...updatedForm,
+                addons: toNumber(updatedForm.sumInsured?.totalSI) >= BUSINESS_ADDON_THRESHOLD
+                    ? selectedAddons
+                    : [],
+            });
             console.log("updatedForm", payload);
             // update state
             setForm(updatedForm);
@@ -481,6 +514,21 @@ const BusinessCalculatorScreen = () => {
         const formKey = riskCoverUiToFormKey[key];
         if (formKey) {
             handleChange('riskCovers', formKey, nextSelected);
+        }
+
+        if (key === 'terrorism') {
+            setForm(prev => ({
+                ...prev,
+                sections: {
+                    ...prev.sections,
+                    section9: {
+                        ...prev.sections.section9,
+                        businessInterruptionTerrorismSI: nextSelected
+                            ? prev.sections.section9.businessInterruptionSI
+                            : '',
+                    },
+                },
+            }));
         }
     };
 
@@ -893,8 +941,10 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.businessInterruption ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionSI)} onChangeText={(text) => handleSectionAmountChange("section9", "businessInterruptionSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
-                                            <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionTerrorismSI)} onChangeText={(text) => handleSectionAmountChange("section9", "businessInterruptionTerrorismSI", text)} keyboardType='numeric' placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionSI)} onChangeText={handleBusinessInterruptionChange} keyboardType='numeric' placeholder='0' label={'Business Interruption Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            {isRiskCoverSelected('terrorism') && (
+                                                <InputField value={formatUSCurrency(form.sections.section9.businessInterruptionTerrorismSI)} editable={false} placeholder='0' label={'Business Interruption Terrorism'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            )}
                                         </View>
                                     </View>
                                     }
@@ -941,6 +991,13 @@ const BusinessCalculatorScreen = () => {
                                             <InputField value={formatUSCurrency(form.sections.section11.plateGlassSI)} onChangeText={(text) => handleSectionAmountChange("section11", "plateGlassSI", text)} keyboardType='numeric' placeholder='0' label={'Plate Glass Insurance Sum Insured'} containerInputStyle={{ paddingVertical: 6 }} />
                                         </View>
                                     </View>}
+
+                                    {toNumber(form.sumInsured.totalSI) >= BUSINESS_ADDON_THRESHOLD && (
+                                        <AddonSelector
+                                            value={selectedAddons}
+                                            onChange={setSelectedAddons}
+                                        />
+                                    )}
 
                                     <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
 
