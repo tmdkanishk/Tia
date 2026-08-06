@@ -1,7 +1,7 @@
 import { View, Text, KeyboardAvoidingView, ScrollView, Image, Dimensions, TouchableOpacity, Pressable, Alert } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { globalStyles } from '../../utility/globalStyles'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { IconComponent, icons } from '../../components/IconComponent'
 import { color } from '../../utility/color'
 import CustomAutoSearchModal from '../../components/CustomAutoSearchModal'
@@ -13,13 +13,24 @@ import { calculateFireInsuranceAPI } from '../../features/fireInsurance/fireInsu
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
+import { useDispatch } from 'react-redux'
+import { showModal } from '../../features/app/appSlice'
+
+const toInputValue = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+  return String(value);
+};
 
 const FireCalculatorScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const dispatch = useDispatch();
+  const { mode, quoteId, quotationData } = route.params || {};
+  const isUpdateMode = mode === 'update' && !!quoteId;
   const { width } = Dimensions.get('window');
   const [modalVisible, setModalVisible] = useState(false);
   const [riskCover, setRiskCover] = useState(riskFireCovers)
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(null); // null | 'calculate' | 'save'
   const [result, setResult] = useState(null);
   const [viewButton, setViewButton] = useState(true);
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -59,6 +70,73 @@ const FireCalculatorScreen = () => {
     otherContentsSI: '',
   });
   const [totalSumInsured, setTotalSumInsured] = useState(null);
+
+  useEffect(() => {
+    if (!isUpdateMode || !quotationData) return;
+
+    const customer = quotationData.customer || {};
+    const risk = quotationData.risk || {};
+    const policy = quotationData.policy || {};
+    const covers = policy.covers || {};
+    const financial = quotationData.financial || {};
+    const discounts = financial.discounts || {};
+    const assets = financial.sumInsured?.assetBreakup || {};
+    const terrorism = covers.terrorism !== false;
+    const burglary = covers.burglaryRsmdTheft !== false && covers.burglary !== false;
+
+    setForm({
+      customerDetails: {
+        customerName: customer.clientName || '',
+        address: risk.location || risk.riskLocation || '',
+        pinCode: toInputValue(risk.pinCode),
+        riskCode: toInputValue(risk.riskCode),
+        occupancy: risk.riskDescription || '',
+      },
+      riskCovers: {
+        terrorism,
+        burglary,
+      },
+      discounts: {
+        iibDiscountPercent: toInputValue(discounts.iib),
+        eqDiscountPercent: toInputValue(discounts.earthquake),
+        stfiDiscountPercent: toInputValue(discounts.stfi),
+      },
+      sumInsured: null,
+      addons: null,
+    });
+
+    setRiskCover((prev) =>
+      prev.map((item) => ({
+        ...item,
+        selected: item.key === 'terrorism' ? terrorism : item.key === 'burglary' ? burglary : item.selected,
+      }))
+    );
+
+    const nextSi = {
+      buildingSI: toInputValue(assets.building),
+      plantAndMachinerySI: toInputValue(assets.plantAndMachinery),
+      stockSI: toInputValue(assets.stock),
+      furnitureFixturesFittingsSI: toInputValue(assets.furnitureFixturesFittings),
+      otherContentsSI: toInputValue(assets.otherContents),
+    };
+    setSumInsuredData(nextSi);
+    setTotalSumInsured(
+      (parseFloat(nextSi.buildingSI) || 0) +
+      (parseFloat(nextSi.plantAndMachinerySI) || 0) +
+      (parseFloat(nextSi.stockSI) || 0) +
+      (parseFloat(nextSi.furnitureFixturesFittingsSI) || 0) +
+      (parseFloat(nextSi.otherContentsSI) || 0)
+    );
+
+    const addons = Array.isArray(quotationData.addons) ? quotationData.addons : [];
+    setSelectedAddons(
+      addons.map((item) => ({
+        id: item.id,
+        addonName: item.name || item.addonName || '',
+        value: toInputValue(item.value),
+      }))
+    );
+  }, [isUpdateMode, quotationData]);
 
 
   const onSelectRiskCode = (data) => {
@@ -128,34 +206,64 @@ const FireCalculatorScreen = () => {
 
 
 
-  const handleCalculate = async () => {
+  const handleCalculate = async (shouldSave = false) => {
     try {
-      setLoading(true);
+      setLoading(shouldSave ? 'save' : 'calculate');
       const updateData = {
         ...form,
         "sumInsured": sumInsuredData,
-        "addons": selectedAddons
+        "addons": selectedAddons,
+        "save": shouldSave,
       };
+      if (isUpdateMode) {
+        updateData.quotationId = quoteId;
+        updateData.id = quoteId;
+      }
       console.log("updateData", updateData);
       const response = await calculateFireInsuranceAPI(updateData);
       console.log("response", response);
       setResult(response.data?.data);
+      if (shouldSave) {
+        dispatch(showModal({
+          title: 'Success',
+          message: isUpdateMode
+            ? 'Quotation updated successfully.'
+            : 'Quotation saved successfully.',
+        }));
+        if (isUpdateMode) {
+          navigation.goBack();
+        }
+      }
     } catch (error) {
-      Alert.alert(
-        "Error",
-        error?.response?.data?.message || "Something went wrong"
-      );
-      console.log("error", error.response.data);
+      dispatch(showModal({
+        title: 'Failed',
+        message: error?.response?.data?.message || 'Something went wrong',
+      }));
+      console.log("error", error.response?.data);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
+
+  const handleSavePress = () => {
+    Alert.alert(
+      isUpdateMode ? 'Update Quotation' : 'Save Quotation',
+      isUpdateMode ? 'Do you want to update this quotation?' : 'Do you want to save it?',
+      [
+        { text: 'No', style: 'cancel' },
+        { text: 'Yes', onPress: () => handleCalculate(true) },
+      ]
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
       <SafeAreaView>
         <View style={globalStyles.newContainer}>
-          <BackHeader title={'Fire Calculator'} subTitle={'Calculate premium for Fire Insurance policies.'} />
+          <BackHeader
+            title={isUpdateMode ? 'Update Fire Quotation' : 'Fire Calculator'}
+            subTitle={isUpdateMode ? 'Edit and recalculate this fire quotation.' : 'Calculate premium for Fire Insurance policies.'}
+          />
           <KeyboardAvoidingView
             behavior='padding'
             style={{ flex: 1, backgroundColor: color.screenBackground }}
@@ -295,8 +403,16 @@ const FireCalculatorScreen = () => {
                   />
                   }
 
-                  <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                      <CustomButton label={isUpdateMode ? 'Update' : 'Save'} width="100%" backgroundColor={color.disabledToggle} textColor={color.mainText} loading={loading === 'save'} disabled={!!loading} onPress={handleSavePress} />
+                    </View>
 
+                    <View style={{ flex: 1 }}>
+                      <CustomButton label='Calculate' width="100%" loading={loading === 'calculate'} disabled={!!loading} onPress={() => handleCalculate(false)} />
+                    </View>
+
+                  </View>
 
 
 

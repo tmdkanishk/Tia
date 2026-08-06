@@ -1,19 +1,20 @@
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import SearchBar from '../../components/SearchBar'
-import { color } from '../../utility/color';
+import { color } from '../../utility/color'
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { textStyles } from '../../utility/textStyles';
 import { useNavigation } from '@react-navigation/native';
-import { getQuotations } from '../../features/quotations/quotationsAPI';
+import { deleteQuotation, getQuotations, normalizeQuoteType } from '../../features/quotations/quotationsAPI';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetQuotationList, setLoading, setQuotationData, setRefresh, setSearch, setTab } from '../../features/quotations/quotationsSlice';
+import { removeQuotation, resetQuotationList, setLoading, setQuotationData, setRefresh, setSearch, setTab } from '../../features/quotations/quotationsSlice';
 import { formattedDate } from '../../utility/helper';
 import { IconComponent, icons } from '../../components/IconComponent';
 import QuotationSkeleton from '../../components/QuotationSkeleton';
+import { setAppLoading, showModal } from '../../features/app/appSlice';
 
-
+const PAGE_LIMIT = 10;
 
 const tabs = [
     {
@@ -41,111 +42,202 @@ const tabs = [
 const QuotationsComponent = () => {
     const dispatch = useDispatch();
     const { quotations, page, loading, refresh, hasMore, search, tab } = useSelector(state => state.quotations);
+    const fetchingRef = useRef(false);
 
     const navigation = useNavigation();
 
-    useEffect(() => {
-        if (page == 1) {
-            fetchQuotations();
-        }
-    }, [search, tab]);
+    const fetchQuotations = useCallback(async (currentPage = 1) => {
+        if (fetchingRef.current && currentPage > 1) return;
+        fetchingRef.current = true;
 
-    const fetchQuotations = async (currentPage = 1) => {
         try {
             dispatch(setLoading(true));
             const response = await getQuotations({
                 page: currentPage,
+                limit: PAGE_LIMIT,
                 search,
-                tab
+                tab,
             });
             console.log("response", response);
-            const data = response?.data?.data || [];
+            const rawData = response?.data?.data || [];
+            const tabType = normalizeQuoteType(tab);
+            // Ensure every row has a usable type for detail/update navigation
+            const data = rawData.map((item) => ({
+                ...item,
+                type: item?.type || item?.quoteType || tabType || null,
+            }));
+            const pagination = response?.data?.pagination;
+            const hasMorePages = typeof pagination?.hasMore === 'boolean'
+                ? pagination.hasMore
+                : pagination
+                    ? pagination.page < pagination.totalPages
+                    : data.length >= PAGE_LIMIT;
+
             dispatch(
                 setQuotationData({
                     page: currentPage,
                     data,
-                    hasMore: data.length > 0
+                    hasMore: hasMorePages,
                 })
             );
         } catch (error) {
-            console.log(error);
+            console.log("error in fetchQuotations", error?.response?.data || error);
+            dispatch(
+                setQuotationData({
+                    page: currentPage,
+                    data: currentPage === 1 ? [] : [],
+                    hasMore: false,
+                })
+            );
         } finally {
+            fetchingRef.current = false;
             dispatch(setLoading(false));
         }
-    };
+    }, [dispatch, search, tab]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchQuotations(1);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [fetchQuotations]);
 
     const onchangeText = (text) => {
-        dispatch(resetQuotationList());
         dispatch(setSearch(text));
     };
 
     const onSelectTab = (key) => {
+        if (tab === key) return;
         dispatch(resetQuotationList());
         dispatch(setTab(key));
     };
 
     const handleLoadMore = () => {
-        if (loading || !hasMore) return;
-        const nextPage = page + 1;
-        // dispatch(setPage(nextPage));
-        fetchQuotations(nextPage);
+        if (loading || !hasMore || fetchingRef.current || quotations.length === 0) return;
+        fetchQuotations(page + 1);
     };
 
+    const getQuoteAccent = (quoteType) => {
+        if (quoteType === 'fire') return color.fire;
+        if (quoteType === 'business') return color.primaryBlue;
+        return color.icon;
+    };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity onPress={() => navigation.navigate('QuoteDetail', { quoteId: item?.id, quoteType: item?.quoteType })} style={{ paddingVertical: 10, paddingHorizontal: 6, borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, flexDirection: 'row', borderLeftWidth: 4, borderLeftColor: item?.quoteType == 'fire' ? color.fire : item?.quoteType == 'business' ? color.primaryBlue : color.icon, justifyContent: 'space-between' }}>
-            <View style={{ width: '65%', borderRightWidth: 1, borderColor: color.borderColor, gap: 10 }}>
-                <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
-                    <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
-                        {item?.quoteType == 'fire' ? <IconComponent icon={icons.fire} size={22} tintColor={color.fire} />
-                            : item?.quoteType == 'business' ? <IconComponent icon={icons.businessins} size={22} tintColor={color.primaryBlue} /> :
-                                <IconComponent icon={icons.industry} size={22} tintColor={color.icon} />
+    const getQuoteBg = (quoteType) => {
+        if (quoteType === 'fire') return color.lightFire;
+        return color.lightBlueBackground;
+    };
+
+    const getQuoteLabel = (quoteType) => {
+        if (quoteType === 'fire') return 'Fire';
+        if (quoteType === 'business') return 'Business';
+        if (quoteType === 'iar') return 'IAR';
+        return quoteType;
+    };
+
+    const handleDelete = (item, quoteType) => {
+        Alert.alert(
+            'Delete Quotation',
+            `Delete ${item?.quotationNo || 'this quotation'}?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            dispatch(setAppLoading(true));
+                            await deleteQuotation(item?.id, quoteType);
+                            dispatch(removeQuotation({ id: item?.id, type: quoteType }));
+                            dispatch(showModal({ title: 'Success', message: 'Quotation deleted successfully.' }));
+                        } catch (error) {
+                            dispatch(showModal({
+                                title: 'Failed',
+                                message: error?.response?.data?.message || 'Failed to delete quotation',
+                            }));
+                        } finally {
+                            dispatch(setAppLoading(false));
                         }
-                    </View>
-                    <View style={{ gap: 5, width: '80%', }}>
-                        <Text style={textStyles.subtitle}>{item?.customerName || 'null'}</Text>
-                        <Text style={[textStyles.bodySmall, { fontSize: 13 }]}>{item?.quoteNo}</Text>
+                    },
+                },
+            ]
+        );
+    };
 
-                        <View style={{ flexDirection: 'row', width: '100%', }}>
-                            <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center', gap: 6, backgroundColor: color.lightBlueBackground, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, flexShrink: 1 }}>
-                                <MaterialCommunityIcons name="warehouse" size={18} />
-                                <Text style={[textStyles.caption, { flexShrink: 1 }]}>{item?.occupancy}</Text>
+    const renderItem = ({ item }) => {
+        // List API tags rows with `type`: FIRE | BUSINESS | IAR
+        const quoteType = normalizeQuoteType(item?.type || item?.quoteType) || normalizeQuoteType(tab) || 'fire';
+        const accent = getQuoteAccent(quoteType);
+        const softBg = getQuoteBg(quoteType);
+        const typeLabel = getQuoteLabel(quoteType);
+
+        return (
+            <TouchableOpacity
+                onPress={() => navigation.navigate('QuoteDetail', {
+                    quoteId: item?.id,
+                    quoteType,
+                })}
+                activeOpacity={0.85}
+                style={{ paddingVertical: 10, paddingHorizontal: 6, borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, flexDirection: 'row', borderLeftWidth: 4, borderLeftColor: accent, justifyContent: 'space-between' }}
+            >
+                <View style={{ width: '65%', borderRightWidth: 1, borderColor: color.borderColor, gap: 10 }}>
+                    <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
+                        <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: softBg, alignItems: 'center', justifyContent: 'center' }}>
+                            {quoteType === 'fire' ? <IconComponent icon={icons.fire} size={22} tintColor={color.fire} />
+                                : quoteType === 'business' ? <IconComponent icon={icons.businessins} size={22} tintColor={color.primaryBlue} /> :
+                                    <IconComponent icon={icons.industry} size={22} tintColor={color.icon} />
+                            }
+                        </View>
+                        <View style={{ gap: 5, width: '80%' }}>
+                            <Text style={textStyles.subtitle}>{item?.clientName || '-'}</Text>
+                            <Text style={[textStyles.bodySmall, { fontSize: 13 }]}>{item?.quotationNo || '-'}</Text>
+
+                            {!!item?.companyName && (
+                                <Text style={[textStyles.caption, { color: color.secondaryText }]}>{item.companyName}</Text>
+                            )}
+
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                                <Icon name="calendar" size={18} />
+                                <Text style={[textStyles.caption,]}> {formattedDate(item?.createdAt)}</Text>
                             </View>
                         </View>
+                    </View>
+                </View>
 
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                            <Icon name="calendar" size={18} />
-                            <Text style={[textStyles.caption,]}> {formattedDate(item?.createdAt)}</Text>
+                <View style={{ width: '35%', justifyContent: 'space-between', gap: 10 }}>
+                    <View style={{ gap: 5, paddingLeft: 6 }}>
+                        <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Total SI</Text>
+                        <Text style={[textStyles.caption]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.55}>
+                            {Number(item?.sumInsured || 0).toLocaleString('en-IN')}
+                        </Text>
+                        <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Gross Premium</Text>
+                        <Text style={[textStyles.caption, { color: color.primaryBlue }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.55}>
+                            {Number(item?.grossPremium || 0).toLocaleString('en-IN')}
+                        </Text>
+                    </View>
+
+                    <View style={{ paddingLeft: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ backgroundColor: softBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}>
+                            <Text style={[textStyles.caption, { color: accent, fontWeight: '700', textTransform: 'uppercase' }]}>
+                                {typeLabel}
+                            </Text>
                         </View>
-
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e?.stopPropagation?.();
+                                handleDelete(item, quoteType);
+                            }}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            style={{ padding: 6, borderRadius: 8, backgroundColor: '#FEE2E2' }}
+                        >
+                            <IconComponent icon={icons.delete} size={18} tintColor={color.error} />
+                        </TouchableOpacity>
                     </View>
                 </View>
-
-
-            </View>
-            <View style={{ width: '35%', justifyContent: 'space-between', gap: 10 }}>
-                <View style={{ gap: 5, paddingLeft: 6 }}>
-                    <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Total SI</Text>
-                    <Text style={[textStyles.caption,]}>{Number(item?.totalSi).toLocaleString('en-IN')}</Text>
-                    <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Gross Premium</Text>
-
-                    <Text style={[textStyles.caption, { color: color.primaryBlue }]}>{Number(item?.grossPremium).toLocaleString('en-IN')}</Text>
-                </View>
-
-                <View style={{ paddingLeft: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: item?.quoteType == 'fire' ? color.lightFire : color.lightBlueBackground, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 }}>
-                        <Icon name="layers" size={16} color={item?.quoteType == 'fire' ? color.fire : item?.quoteType == 'business' ? color.primaryBlue : color.icon} />
-                        <Text style={[textStyles.caption, { color: item?.quoteType == 'fire' ? color.fire : item?.quoteType == 'business' ? color.primaryBlue : color.icon }]}>{item?.addons?.length} Addons</Text>
-                    </View>
-                    <Icon name="chevron-right" size={22} />
-                </View>
-            </View>
-
-        </TouchableOpacity>
-    )
-
-
-
+            </TouchableOpacity>
+        );
+    };
 
     const renderHeader = () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
@@ -162,34 +254,29 @@ const QuotationsComponent = () => {
 
     const onRefresh = async () => {
         try {
-            console.log("calling refreshing")
             dispatch(setRefresh(true));
             dispatch(resetQuotationList());
-            await fetchQuotations();
+            await fetchQuotations(1);
         } catch (error) {
 
         } finally {
             dispatch(setRefresh(false));
         }
-
-
     }
-
 
     const skeletonData = useMemo(
         () => Array.from({ length: 5 }, (_, i) => i),
         []
     );
+
     return (
         <View style={{ gap: 12, height: '80%', backgroundColor: '#fff', }}>
             <SearchBar onChangeText={onchangeText} value={search} />
-            {
-                renderHeader()
-            }
+            {renderHeader()}
             <FlatList
                 data={quotations}
-                // ListHeaderComponent={renderHeader}
                 renderItem={renderItem}
+                keyExtractor={(item, index) => `${item?.type || item?.quoteType || 'q'}-${item?.id || index}`}
                 contentContainerStyle={{ gap: 12, paddingBottom: 100, paddingTop: 10 }}
                 showsVerticalScrollIndicator={false}
                 onEndReached={handleLoadMore}
@@ -203,7 +290,6 @@ const QuotationsComponent = () => {
                     </View>
                 }
                 ListFooterComponent={
-                    // loading && <ActivityIndicator size={'large'} color={color.primaryBlueDark} />
                     loading ? <>
                         {skeletonData.map((item, index) => (
                             <QuotationSkeleton key={index} />

@@ -1,422 +1,695 @@
-import { View, Text, ScrollView, TouchableOpacity, Platform, StyleSheet } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { color } from '../../utility/color';
+import { View, Text, ScrollView, TouchableOpacity, Platform, StyleSheet, Alert } from 'react-native'
+import React, { useCallback, useMemo, useState } from 'react'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { color } from '../../utility/color'
 import BackHeader from '../../components/BackHeader'
-import { globalStyles } from '../../utility/globalStyles';
-import Icon from 'react-native-vector-icons/Feather';
-import MaterialDesignIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { textStyles } from '../../utility/textStyles';
-import { checkPermission } from '../../utility/permissions';
-// Import RNFetchBlob for the file download
-import { IconComponent, icons } from '../../components/IconComponent';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import { getQuotationDetails } from '../../features/quotations/quotationsAPI';
-import { BASE_URL } from '../../config/env';
-import { useDispatch, useSelector } from 'react-redux';
-import { setAppLoading, showModal } from '../../features/app/appSlice';
-import { formattedDate } from '../../utility/helper';
-import { sumInsuredLabels, discountLabels, rateLabels, premiumLabels } from '../../utility/labels';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import Icon from 'react-native-vector-icons/Feather'
+import MaterialDesignIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { textStyles } from '../../utility/textStyles'
+import { checkPermission } from '../../utility/permissions'
+import { IconComponent, icons } from '../../components/IconComponent'
+import ReactNativeBlobUtil from 'react-native-blob-util'
+import { getQuotationDetails, getQuotationPdfExportPath, resolveQuoteType } from '../../features/quotations/quotationsAPI'
+import { BASE_URL } from '../../config/env'
+import { useDispatch, useSelector } from 'react-redux'
+import { setAppLoading, showModal } from '../../features/app/appSlice'
+import { formattedDate } from '../../utility/helper'
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
+
+const NA = 'N/A';
+
+const FIRE_LABELS = {
+    iib: 'IIB Discount %',
+    earthquake: 'Earthquake Discount %',
+    stfi: 'STFI Discount %',
+    building: 'Building',
+    plantAndMachinery: 'Plant & Machinery',
+    stock: 'Stock',
+    furnitureFixturesFittings: 'Furniture Fixtures & Fittings',
+    otherContents: 'Other Contents',
+    total: 'Total Sum Insured',
+    fireSection: 'Fire Section Sum Insured',
+    burglarySection: 'Burglary Section Sum Insured',
+    iibRate: 'IIB Rate',
+    netIIBRate: 'Net IIB Rate',
+    earthquakeRate: 'Earthquake Rate',
+    stfiRate: 'STFI Rate',
+    netEqRate: 'Net Earthquake Rate',
+    netStfiRate: 'Net STFI Rate',
+    netCatRate: 'Net Cat Rate',
+    finalFireRate: 'Final Fire Rate',
+    terrorismRate: 'Terrorism Rate',
+    bhbRate: 'BHB Rate',
+    fire: 'Fire Premium',
+    terrorism: 'Terrorism Premium',
+    burglary: 'Burglary Premium',
+    netPremium: 'Net Premium',
+    gstPercent: 'GST (%)',
+    gstAmount: 'GST Amount',
+    grossPremium: 'Gross Premium',
+};
+
+const FIRE_DISCOUNT_KEYS = ['iib', 'earthquake', 'stfi'];
+const FIRE_ASSET_KEYS = ['building', 'plantAndMachinery', 'stock', 'furnitureFixturesFittings', 'otherContents'];
+const FIRE_SI_SECTION_KEYS = ['total', 'fireSection', 'burglarySection'];
+const FIRE_RATE_KEYS = [
+    'iibRate', 'netIIBRate', 'earthquakeRate', 'stfiRate',
+    'netEqRate', 'netStfiRate', 'netCatRate', 'finalFireRate',
+    'terrorismRate', 'bhbRate',
+];
+const FIRE_PREMIUM_KEYS = ['fire', 'terrorism', 'burglary', 'netPremium', 'gstPercent', 'gstAmount', 'grossPremium'];
+
+const humanizeKey = (key = '') =>
+    key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (s) => s.toUpperCase()).trim();
+
+const getLabel = (key, labels = {}) => labels[key] || FIRE_LABELS[key] || humanizeKey(key);
+
+const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const parseMaybeJson = (value) => {
+    if (value == null || value === '') return null;
+    if (typeof value === 'string') {
+        try { return JSON.parse(value); } catch (e) { return value; }
+    }
+    return value;
+};
+
+const isEmptyValue = (value) =>
+    value === null || value === undefined || value === '';
+
+const formatMoney = (value) => {
+    if (isEmptyValue(value) || Number.isNaN(Number(value))) return NA;
+    return Number(value).toLocaleString('en-IN');
+};
+
+const formatDisplayValue = (value, { percent = false, money = false } = {}) => {
+    if (isEmptyValue(value)) return NA;
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (percent) return `${value}%`;
+    if (money) return formatMoney(value);
+    if (typeof value === 'number' || (!isNaN(Number(value)) && value !== '')) {
+        const num = Number(value);
+        if (!Number.isInteger(num) && Math.abs(num) < 1000) return String(num);
+        return formatMoney(num);
+    }
+    return String(value);
+};
+
+const buildRows = (source = {}, keys = [], options = {}) => {
+    const obj = isPlainObject(source) ? source : {};
+    const keyList = keys.length
+        ? keys
+        : Object.keys(obj).filter((k) => !isPlainObject(obj[k]) && !Array.isArray(obj[k]));
+    return keyList.map((key) => {
+        const isPercent = options.percent || key === 'gstPercent' || /Pct$/i.test(key);
+        const isMoney = options.money && !isPercent && !/Rate$/i.test(key);
+        return {
+            key,
+            label: getLabel(key, options.labels),
+            value: formatDisplayValue(obj[key], {
+                percent: isPercent && (options.percent || key === 'gstPercent'),
+                money: isMoney,
+            }),
+        };
+    });
+};
+
+const TYPE_META = {
+    fire: { title: 'Fire Quotation', accent: color.fire, softBg: color.lightFire, icon: icons.fire },
+    business: { title: 'Business Quotation', accent: color.primaryBlue, softBg: color.lightBlueBackground, icon: icons.businessins },
+    iar: { title: 'IAR Quotation', accent: color.icon, softBg: color.lightBlueBackground, icon: icons.industry },
+};
+
 const QuoteDetailScreen = ({ route }) => {
-    const { quoteId, quoteType } = route.params;
+    const { quoteId, quoteType: rawQuoteType } = route.params || {};
+    const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
 
     const [data, setData] = useState(null);
-    const [sectionShow, setSectionShow] = useState({
-        sumInsured: false,
-        discount: false,
-        rate: false,
-        premiumBreackdown: false,
-        additonalCover: false
-    });
+    const [sectionShow, setSectionShow] = useState({});
+    const [quoteType, setQuoteType] = useState(() => resolveQuoteType(rawQuoteType) || 'fire');
 
+    const meta = TYPE_META[quoteType] || TYPE_META.fire;
 
-    useEffect(() => {
-        fetchQuotationDetails();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchQuotationDetails();
+        }, [quoteId, rawQuoteType])
+    );
 
     const fetchQuotationDetails = async () => {
+        const requestType = resolveQuoteType(rawQuoteType, quoteType);
+
+        if (!requestType) {
+            Alert.alert('Error', 'Missing quotation type (fire / business / iar)');
+            return;
+        }
+
         try {
             dispatch(setAppLoading(true));
-            const response = await getQuotationDetails(quoteId);
-            console.log("Quotation Details response ", response.data?.data);
-            setData(response.data?.data);
+            const response = await getQuotationDetails(quoteId, requestType);
+            const payload = response.data?.data || null;
+            console.log('Quotation Details response ', payload);
+
+            const resolvedType = resolveQuoteType(
+                payload?.quotation?.type,
+                payload?.quoteDetails?.type,
+                payload?.type,
+                requestType,
+            );
+            if (resolvedType) setQuoteType(resolvedType);
+            setData(payload);
         } catch (error) {
-            console.log("error dfsg", error.response.data);
+            console.log('error', error?.response?.data);
+            Alert.alert('Error', error?.response?.data?.message || 'Failed to load quotation details');
         } finally {
             dispatch(setAppLoading(false));
         }
-    }
-
-    const toggleSection = (section) => {
-        setSectionShow((prev) => ({
-            ...prev,
-            [section]: !prev[section],
-        }));
     };
 
     const downloadFile = async (ext, url) => {
         try {
-            console.log(ext, url);
-            const needsStoragePermission =
-                Platform.OS === 'android' &&
-                Platform.Version <= 28;
-
+            if (!url) {
+                Alert.alert('Unavailable', 'Export file is not available for this quotation.');
+                return;
+            }
+            const needsStoragePermission = Platform.OS === 'android' && Platform.Version <= 28;
             if (needsStoragePermission) {
                 const status = await checkPermission();
-                if (status) {
-                    download(ext, url);
-                }
+                if (status) download(ext, url);
             } else {
                 download(ext, url);
             }
-
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-
-    }
+    };
 
     const download = async (ext, url) => {
         try {
             dispatch(setAppLoading(true));
-
-            // Main function to download the image
-
-            // To add the time suffix in filename
-            let date = new Date();
-
-            // let file = `${BASE_URL}/api/quotations/export/${quoteId}/export/pdf`
-            let file = `${BASE_URL}${url}`
-            // Getting the extention of the file
-            // let ext = getExtention(file);
-            // ext = '.' + ext[0];
-            // Get config and fs from RNFetchBlob
-            // config: To pass the downloading related options
-            // fs: Directory path where we want our image to download
+            const file = url.startsWith('http') ? url : `${BASE_URL}${url}`;
             const { config, fs } = ReactNativeBlobUtil;
+            const fileName = `quotation_${quoteId}_${Date.now()}${ext}`;
+            const filePath = Platform.OS === 'ios'
+                ? `${fs.dirs.DocumentDir}/${fileName}`
+                : `/storage/emulated/0/Download/${fileName}`;
 
-            // const filePath =
-            //     `${ReactNativeBlobUtil.fs.dirs.DownloadDir}/doc_${Date.now()}.pdf`;
-            // console.log( " dir path ",ReactNativeBlobUtil.fs.dirs);
+            const configOptions = Platform.OS === 'ios'
+                ? { fileCache: true, path: filePath }
+                : {
+                    fileCache: true,
+                    addAndroidDownloads: {
+                        useDownloadManager: true,
+                        notification: true,
+                        description: 'Downloading File',
+                        mediaScannable: true,
+                        path: filePath,
+                        mime: ext === '.pdf' ? 'application/pdf' : undefined,
+                        title: fileName,
+                    },
+                };
 
-            const filePath = `/storage/emulated/0/Download/doc_${Date.now()}${ext}`;
-            // let downloadDir = fs.dirs.SDCardDir;
-            let options = {
-                fileCache: true,
-                addAndroidDownloads: {
-                    // Related to the Android only
-                    useDownloadManager: true,
-                    notification: true,
-                    // mime: 'application/pdf',
-                    // path:
-                    //     downloadDir +
-                    //     '/doc_' +
-                    //     Math.floor(date.getTime() + date.getSeconds() / 2) +
-                    //     ext,
-                    description: 'Downloading File',
-                    mediaScannable: true,
-                    path: filePath,
-
-                },
-            };
-            await config(options)
-                .fetch('GET', file,
-                    {
-                        Authorization: `Bearer ${accessToken}`,
-                    }
-                )
-                .then(res => {
-                    // Showing alert after successful downloading
-                    console.log('res -> ', JSON.stringify(res));
-                    dispatch(
-                        showModal({
-                            title: 'Success',
-                            message: 'Quotation downloaded successfully.',
-                        })
-                    );
-                });
-
+            await config(configOptions).fetch('GET', file, { Authorization: `Bearer ${accessToken}` });
+            dispatch(showModal({ title: 'Success', message: 'Quotation downloaded successfully.' }));
         } catch (error) {
-            dispatch(
-                showModal({
-                    title: 'Failed',
-                    message: 'Something went wrong. Please try again later.',
-                })
-            );
-
+            console.log('download error', error);
+            dispatch(showModal({ title: 'Failed', message: 'Something went wrong. Please try again later.' }));
         } finally {
             dispatch(setAppLoading(false));
         }
     };
 
+    const handleExportPdf = () => {
+        const path = getQuotationPdfExportPath(quoteId, quoteType);
+        downloadFile('.pdf', path);
+    };
+
+    const handleUpdateQuotation = () => {
+        const type = resolveQuoteType(
+            data?.quotation?.type,
+            data?.quoteDetails?.type,
+            data?.type,
+            quoteType,
+            rawQuoteType,
+        );
+        navigation.navigate('UpdateQuotation', {
+            quoteId,
+            quoteType: type,
+            quotationData: data,
+        });
+    };
+
+    // Normalize both new API shape and any legacy leftovers
+    const model = useMemo(() => {
+        const root = data || {};
+        const calculation = parseMaybeJson(root.calculation) || {};
+
+        const quotation = root.quotation || root.quoteDetails || {};
+        const customer = root.customer || {};
+        const risk = root.risk || root.riskDetails || {};
+        const policy = root.policy || root.policyDetails || {};
+        const financial = root.financial || {};
+
+        const sumInsured = financial.sumInsured || calculation.sumInsured || {};
+        const assetBreakup = sumInsured.assetBreakup || {};
+        const discounts = financial.discounts || root.discounts || {};
+        const premium = financial.premium || root.premium || calculation.premium || {};
+        const rates = calculation.rates || root.rates || {};
+        const inputs = calculation.inputs || calculation.customerDetails || {};
+
+        const addons = Array.isArray(root.addons) ? root.addons : [];
+        const wordings = Array.isArray(root.wordings) ? root.wordings : [];
+        const termsConditions = Array.isArray(root.termsConditions) ? root.termsConditions : [];
+
+        return {
+            quotation,
+            customer,
+            risk,
+            policy,
+            covers: policy.covers || {},
+            sumInsured,
+            assetBreakup,
+            discounts,
+            premium,
+            rates,
+            inputs,
+            addons,
+            wordings,
+            termsConditions,
+            remarks: root.remarks,
+            exports: root.exports,
+            totalSi: sumInsured.total ?? root.sumInsured,
+        };
+    }, [data]);
+
+    const renderAmount = (value, style) => (
+        <Text
+            style={style}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.55}
+        >
+            {value}
+        </Text>
+    );
+
+    const renderRows = (rows) => (
+        <View style={styles.table}>
+            {rows.map((row, index) => (
+                <View key={row.key} style={[styles.row, index === rows.length - 1 && { borderBottomWidth: 0 }]}>
+                    <Text style={[textStyles.body, styles.label]}>{row.label}</Text>
+                    {renderAmount(
+                        row.value,
+                        [textStyles.body, styles.value, row.value === NA && styles.na]
+                    )}
+                </View>
+            ))}
+        </View>
+    );
+
+    const renderInfoRow = (label, value, { money = false } = {}) => {
+        const display = isEmptyValue(value) ? NA : String(value);
+        const valueStyle = [textStyles.bodySmall, styles.infoValue, (display === NA) && styles.na];
+        return (
+            <View style={styles.infoRow}>
+                <Text style={[textStyles.bodySmall, styles.infoLabel]}>{label}</Text>
+                {money
+                    ? renderAmount(display, valueStyle)
+                    : <Text style={valueStyle}>{display}</Text>}
+            </View>
+        );
+    };
+
+    const renderCollapsibleSection = (key, title, content, defaultOpen = true, iconName = 'file-document-outline') => {
+        const open = sectionShow[key] ?? defaultOpen;
+        return (
+            <View style={styles.sectionCard}>
+                <TouchableOpacity
+                    onPress={() => setSectionShow(prev => ({ ...prev, [key]: !open }))}
+                    style={styles.sectionHeader}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                        <MaterialDesignIcons name={iconName} size={22} color={meta.accent} />
+                        <Text style={textStyles.body}>{title}</Text>
+                    </View>
+                    <Icon name={open ? 'chevron-up' : 'chevron-down'} size={28} color={color.icon} />
+                </TouchableOpacity>
+                {open ? <View>{content}</View> : null}
+            </View>
+        );
+    };
+
+    const renderPolicyDetails = () => (
+        <View style={{ gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: meta.softBg, alignItems: 'center', justifyContent: 'center' }}>
+                    <IconComponent icon={meta.icon} size={22} tintColor={meta.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={textStyles.subtitle}>{model.quotation?.quotationNo || NA}</Text>
+                    <Text style={[textStyles.caption, { color: meta.accent, marginTop: 2, textTransform: 'uppercase' }]}>
+                        {(model.quotation?.type || quoteType)}
+                    </Text>
+                </View>
+            </View>
+
+            {renderInfoRow('Company', model.quotation?.companyName)}
+            {renderInfoRow('Product', model.quotation?.productName)}
+            {renderInfoRow('Customer Name', model.customer?.clientName)}
+            {renderInfoRow('Broker', model.customer?.brokerName)}
+            {renderInfoRow('IMD', model.customer?.imd)}
+            {renderInfoRow('Risk Location', model.risk?.location || model.risk?.riskLocation)}
+            {renderInfoRow('District', model.risk?.district)}
+            {renderInfoRow('State', model.risk?.state)}
+            {renderInfoRow('Pin Code', model.risk?.pinCode)}
+            {renderInfoRow('Earthquake Zone', model.risk?.earthquakeZone)}
+            {renderInfoRow('Risk Code', model.risk?.riskCode ?? model.inputs?.riskCode)}
+            {renderInfoRow('Risk Description', model.risk?.riskDescription || model.inputs?.occupancy)}
+            {renderInfoRow('Case Type', model.policy?.caseType)}
+            {renderInfoRow('Previous Insurer', model.policy?.previousInsurer)}
+            {renderInfoRow('Business Age', model.policy?.businessAge)}
+            {renderInfoRow('Industry Type', model.policy?.industryType)}
+            {renderInfoRow('Construction Type', model.policy?.constructionType)}
+            {renderInfoRow('Burglary / RSMD / Theft', formatDisplayValue(model.covers?.burglaryRsmdTheft))}
+            {renderInfoRow('Terrorism Cover', formatDisplayValue(model.covers?.terrorism))}
+            {renderInfoRow('Fire Fighting Measures', formatDisplayValue(model.policy?.fireFightingMeasures))}
+            {renderInfoRow('CCTV Installed', formatDisplayValue(model.policy?.cctvInstalled))}
+            {renderInfoRow('Hypothecation', formatDisplayValue(model.policy?.hypothecation))}
+            {renderInfoRow('Bank Name', model.policy?.bankName)}
+            {renderInfoRow('Created', model.quotation?.createdAt ? formattedDate(model.quotation.createdAt) : null)}
+            {renderInfoRow('Updated', model.quotation?.updatedAt ? formattedDate(model.quotation.updatedAt) : null)}
+        </View>
+    );
+
+    const renderListSection = (items = []) => {
+        if (!items.length) {
+            return <Text style={[textStyles.bodySmall, styles.na, { paddingVertical: 8 }]}>{NA}</Text>;
+        }
+        return (
+            <View style={{ gap: 8, paddingVertical: 6 }}>
+                {items.map((item, index) => (
+                    <View key={`${index}`} style={{ flexDirection: 'row', gap: 8 }}>
+                        <Text style={[textStyles.bodySmall, { color: meta.accent, fontWeight: '700' }]}>{index + 1}.</Text>
+                        <Text style={[textStyles.bodySmall, { flex: 1 }]}>{item}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderAddons = () => {
+        if (!model.addons.length) {
+            return <Text style={[textStyles.bodySmall, styles.na, { paddingVertical: 8 }]}>{NA}</Text>;
+        }
+        return (
+            <View style={{ gap: 10 }}>
+                {model.addons.map((item, index) => (
+                    <View key={`${item?.id || index}`} style={styles.addonCard}>
+                        <View style={styles.addonHeader}>
+                            <View style={[styles.addonBadge, { backgroundColor: meta.softBg }]}>
+                                <Text style={[textStyles.caption, { color: meta.accent, fontWeight: '700' }]}>{index + 1}</Text>
+                            </View>
+                            <Text style={[textStyles.body, { fontWeight: '700', flex: 1 }]}>
+                                {item?.name || item?.addonName || `Addon ${index + 1}`}
+                            </Text>
+                        </View>
+                        {renderInfoRow('Sum Insured', formatDisplayValue(item?.value, { money: true }), { money: true })}
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const sumInsuredRows = [
+        ...buildRows(model.assetBreakup, FIRE_ASSET_KEYS, { money: true, labels: FIRE_LABELS }),
+        ...buildRows(model.sumInsured, FIRE_SI_SECTION_KEYS, { money: true, labels: FIRE_LABELS }),
+    ];
+
+    const footerBottomPad = Math.max(insets.bottom, 12);
+
     return (
-        <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
-            <SafeAreaView>
-                <View style={globalStyles.newContainer}>
-                    <BackHeader title={'Quotation Details'} />
-                    <View style={{ flex: 1, backgroundColor: color.screenBackground, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: 12 }}>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            <View style={{ gap: 12, padding: 20 }}>
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                            <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
-                                                {quoteType == 'fire' ? <IconComponent icon={icons.fire} size={22} tintColor={color.fire} />
-                                                    : quoteType == 'business' ? <IconComponent icon={icons.businessins} size={22} tintColor={color.primaryBlue} /> :
-                                                        <IconComponent icon={icons.industry} size={22} tintColor={color.icon} />
-                                                }
-                                            </View>
-                                            <Text style={textStyles.subtitle}> {data?.quoteDetails?.quoteNo} </Text>
-                                        </View>
-                                    </View>
+        <View style={styles.screen}>
+            <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+                <BackHeader title={meta.title} />
+                <View style={styles.sheet}>
+                    <ScrollView
+                        style={{ flex: 1 }}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 110 + footerBottomPad }}
+                    >
+                        <View style={{ gap: 12, padding: 20 }}>
+                            {renderCollapsibleSection('policyDetails', 'Policy Details', renderPolicyDetails(), true, 'file-document-outline')}
 
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                        <View style={{ width: '70%', flexDirection: 'row', gap: 10 }}>
-                                            <FontAwesome6 name="user-large" size={18} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.bodySmall}>{data?.quoteDetails?.customerName}</Text>
-                                        </View>
-                                    </View>
-
-
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                        <View style={{ width: '70%', flexDirection: 'row', gap: 10 }}>
-                                            <FontAwesome6 name="location-dot" size={18} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.bodySmall}>{data?.riskDetails?.pinCode}</Text>
-                                        </View>
-                                        <View style={{ flexDirection: 'row', gap: 10 }}>
-                                            <FontAwesome6 name="calendar-days" size={18} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.bodySmall}>{formattedDate(data?.quoteDetails?.createdAt)}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={{ flexDirection: 'row' }}>
-                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>RiskCode :</Text>
-                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.riskCode}</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row' }}>
-                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>Address :</Text>
-                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.address}</Text>
-                                    </View>
-
-                                    <View style={{ flexDirection: 'row' }}>
-                                        <Text style={[textStyles.bodySmall, { fontWeight: '600' }]} numberOfLines={2} ellipsizeMode='tail'>Occupancy :</Text>
-                                        <Text style={[textStyles.bodySmall]} numberOfLines={2} ellipsizeMode='tail'> {data?.riskDetails?.occupancy}</Text>
-                                    </View>
+                            <View style={styles.summaryStrip}>
+                                <View style={[styles.summaryCell, styles.summaryBorder]}>
+                                    <FontAwesome6 name="calculator" size={18} color={meta.accent} />
+                                    <Text style={[textStyles.caption, { color: color.secondaryText }]}>Total SI</Text>
+                                    {renderAmount(
+                                        formatMoney(model.totalSi),
+                                        [textStyles.bodySmall, styles.summaryAmount, { color: meta.accent }]
+                                    )}
                                 </View>
-                                <View
-                                    style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        borderWidth: 1,
-                                        borderRadius: 6,
-                                        borderColor: color.borderColor
-                                    }}
-                                >
-                                    <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, paddingVertical: 10, borderColor: color.borderColor }}>
-                                        <FontAwesome6 name="calculator" size={20} color={color.primaryBlueDark} />
-                                        <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Total SI</Text>
-                                        <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]}> {Number(data?.sumInsured?.totalSi).toLocaleString('en-IN')}</Text>
-                                    </View>
-
-                                    <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, paddingVertical: 10, borderColor: color.borderColor }}>
-                                        <FontAwesome6 name="chart-line" size={20} color={color.primaryBlueDark} />
-                                        <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Gross Premium</Text>
-                                        <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]}>{Number(data?.premiums?.grossPremium).toLocaleString('en-IN')}</Text>
-                                    </View>
-
-                                    <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}>
-                                        <FontAwesome6 name="circle-plus" size={20} color={color.primaryBlueDark} />
-                                        <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>Addons</Text>
-                                        <Text style={[textStyles.bodySmall, { color: color.primaryBlue }]} >{data?.addons.length} Selected</Text>
-                                    </View>
+                                <View style={[styles.summaryCell, styles.summaryBorder]}>
+                                    <FontAwesome6 name="wallet" size={18} color={meta.accent} />
+                                    <Text style={[textStyles.caption, { color: color.secondaryText }]}>Net</Text>
+                                    {renderAmount(
+                                        formatMoney(model.premium?.netPremium),
+                                        [textStyles.bodySmall, styles.summaryAmount, { color: meta.accent }]
+                                    )}
                                 </View>
-
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <TouchableOpacity onPress={() => toggleSection('sumInsured')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.body}>Sum Insured Details</Text>
-                                        </View>
-                                        <Icon name={sectionShow.sumInsured ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
-                                    </TouchableOpacity>
-
-                                    <View style={{ display: sectionShow.sumInsured ? 'flex' : 'none' }}>
-
-                                        <View style={styles.table}>
-                                            {Object.entries(data?.sumInsured || {}).map(([key, value], index, arr) => (
-                                                <View
-                                                    key={key}
-                                                    style={[
-                                                        styles.row,
-                                                        index === arr.length - 1 && { borderBottomWidth: 0 },
-                                                    ]}
-                                                >
-                                                    <Text style={[textStyles.body, styles.label]}>
-                                                        {sumInsuredLabels[key] || key}
-                                                    </Text>
-
-                                                    <Text style={[textStyles.body, styles.value]}>
-                                                        {Number(value).toLocaleString('en-IN')}
-                                                    </Text>
-                                                </View>
-                                            ))}
-                                        </View>
-
-                                    </View>
+                                <View style={[styles.summaryCell, styles.summaryBorder]}>
+                                    <FontAwesome6 name="percent" size={18} color={meta.accent} />
+                                    <Text style={[textStyles.caption, { color: color.secondaryText }]}>GST</Text>
+                                    {renderAmount(
+                                        formatMoney(model.premium?.gstAmount),
+                                        [textStyles.bodySmall, styles.summaryAmount, { color: meta.accent }]
+                                    )}
                                 </View>
-
-
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <TouchableOpacity onPress={() => toggleSection('discount')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.body}>Discounts</Text>
-                                        </View>
-                                        <Icon name={sectionShow.discount ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
-
-                                    </TouchableOpacity>
-
-                                    <View style={{ display: sectionShow.discount ? 'flex' : 'none' }}>
-                                        <View style={styles.table}>
-                                            {Object.entries(data?.discounts || {}).map(([key, value], index, arr) => (
-                                                <View
-                                                    key={key}
-                                                    style={[
-                                                        styles.row,
-                                                        index === arr.length - 1 && { borderBottomWidth: 0 },
-                                                    ]}
-                                                >
-                                                    <Text style={[textStyles.body, styles.label]}>
-                                                        {discountLabels[key] || key}
-                                                    </Text>
-
-                                                    <Text style={[textStyles.body, styles.value]}>
-                                                        {`${value}%`}
-                                                    </Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <TouchableOpacity onPress={() => toggleSection('rate')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.body}>Rate</Text>
-                                        </View>
-                                        <Icon name={sectionShow.rate ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
-                                    </TouchableOpacity>
-                                    <View style={{ display: sectionShow.rate ? 'flex' : 'none' }}>
-                                        <View style={styles.table}>
-                                            {Object.entries(data?.rates || {}).map(([key, value], index, arr) => (
-                                                <View
-                                                    key={key}
-                                                    style={[
-                                                        styles.row,
-                                                        index === arr.length - 1 && { borderBottomWidth: 0 },
-                                                    ]}
-                                                >
-                                                    <Text style={[textStyles.body, styles.label]}>
-                                                        {rateLabels[key] || key}
-                                                    </Text>
-
-                                                    <Text style={[textStyles.body, styles.value]}>
-                                                        {Number(value).toLocaleString('en-IN')}
-                                                    </Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    </View>
-                                </View>
-
-                                <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <TouchableOpacity onPress={() => toggleSection('premiumBreackdown')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.body}>Premium & Breackdown</Text>
-                                        </View>
-                                        <Icon name={sectionShow.premiumBreackdown ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
-                                    </TouchableOpacity>
-                                    <View style={{ display: sectionShow.premiumBreackdown ? 'flex' : 'none' }}>
-                                        <View style={styles.table}>
-                                            {Object.entries(data?.premiums || {}).map(([key, value], index, arr) => (
-                                                <View
-                                                    key={key}
-                                                    style={[
-                                                        styles.row,
-                                                        index === arr.length - 1 && { borderBottomWidth: 0 },
-                                                    ]}
-                                                >
-                                                    <Text style={[textStyles.body, styles.label]}>
-                                                        {premiumLabels[key] || key}
-                                                    </Text>
-
-                                                    <Text style={[textStyles.body, styles.value]}>
-                                                        {Number(value).toLocaleString('en-IN')}
-                                                    </Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    </View>
-                                </View>
-
-                                {data?.addons?.length > 0 && <View style={{ borderWidth: 1, borderRadius: 10, borderColor: color.borderColor, padding: 10, gap: 10 }}>
-                                    <TouchableOpacity onPress={() => toggleSection('additonalCover')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialDesignIcons name="shield-check" size={22} color={color.primaryBlueDark} />
-                                            <Text style={textStyles.body}>Additional Covers (Addons)</Text>
-                                        </View>
-                                        <Icon name={sectionShow.additonalCover ? "chevron-up" : "chevron-down"} size={28} color={color.icon} />
-                                    </TouchableOpacity>
-                                    <View style={{ display: sectionShow.additonalCover ? 'flex' : 'none', gap: 10 }}>
-                                        {
-                                            data?.addons?.map((item, index) => (
-                                                <View key={index} style={{ flex: 1, gap: 6, borderBottomWidth: 1, paddingBottom: 6, borderColor: color.borderColor }}>
-                                                    <Text style={textStyles.body}>{`${index + 1}. ${item?.addonName}`}</Text>
-                                                    <Text style={[textStyles.bodySmall, { color: color.secondaryText }]}>{item?.remarksSi}</Text>
-                                                </View>
-                                            ))
-                                        }
-
-                                    </View>
-                                </View>}
-
-
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <TouchableOpacity onPress={() => downloadFile('.pdf', data?.exports?.pdfUrl)} style={{ width: '48%', borderWidth: 1, borderColor: color.borderColor, paddingVertical: 12, borderRadius: 10, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                        <IconComponent icon={icons.pdfFile} size={24} />
-                                        <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>Export PDF</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => downloadFile('.xlsx', data?.exports?.excelUrl)} style={{ width: '48%', borderWidth: 1, borderColor: color.borderColor, paddingVertical: 12, borderRadius: 10, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                        <IconComponent icon={icons.excelFile} size={24} />
-                                        <Text style={{ fontSize: 13, color: '#1A237E', fontWeight: '700' }}>Export Excel</Text>
-                                    </TouchableOpacity>
+                                <View style={styles.summaryCell}>
+                                    <FontAwesome6 name="chart-line" size={18} color={meta.accent} />
+                                    <Text style={[textStyles.caption, { color: color.secondaryText }]}>Gross</Text>
+                                    {renderAmount(
+                                        formatMoney(model.premium?.grossPremium),
+                                        [textStyles.bodySmall, styles.summaryAmount, { color: meta.accent }]
+                                    )}
                                 </View>
                             </View>
-                        </ScrollView>
-                    </View>
-                </View >
-            </SafeAreaView >
-        </View >
-    )
-}
 
-export default QuoteDetailScreen
+                            {renderCollapsibleSection(
+                                'discounts',
+                                'Discounts',
+                                renderRows(buildRows(model.discounts, FIRE_DISCOUNT_KEYS, { percent: true, labels: FIRE_LABELS })),
+                                true,
+                                'tag-outline'
+                            )}
 
+                            {renderCollapsibleSection(
+                                'sumInsured',
+                                'Sum Insured',
+                                renderRows(sumInsuredRows),
+                                true,
+                                'cash-multiple'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'rates',
+                                'Rates',
+                                renderRows(buildRows(model.rates, FIRE_RATE_KEYS, { labels: FIRE_LABELS })),
+                                true,
+                                'percent-outline'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'premium',
+                                'Premium',
+                                renderRows(buildRows(model.premium, FIRE_PREMIUM_KEYS, {
+                                    money: true,
+                                    labels: FIRE_LABELS,
+                                })),
+                                true,
+                                'currency-inr'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'addons',
+                                `Addons (${model.addons.length})`,
+                                renderAddons(),
+                                true,
+                                'plus-circle-outline'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'wordings',
+                                `Wordings (${model.wordings.length})`,
+                                renderListSection(model.wordings),
+                                false,
+                                'format-list-bulleted'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'terms',
+                                `Terms & Conditions (${model.termsConditions.length})`,
+                                renderListSection(model.termsConditions),
+                                false,
+                                'text-box-outline'
+                            )}
+
+                            {renderCollapsibleSection(
+                                'remarks',
+                                'Remarks',
+                                <Text style={[textStyles.bodySmall, { paddingVertical: 6 }, isEmptyValue(model.remarks) && styles.na]}>
+                                    {isEmptyValue(model.remarks) ? NA : model.remarks}
+                                </Text>,
+                                false,
+                                'message-text-outline'
+                            )}
+                        </View>
+                    </ScrollView>
+                </View>
+            </SafeAreaView>
+
+            <View pointerEvents="box-none" style={[styles.stickyFooter, { paddingBottom: footerBottomPad }]}>
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleExportPdf}
+                    style={[styles.footerBtn, styles.footerBtnSecondary]}
+                >
+                    <Text style={[styles.footerBtnText, { color: color.primaryBlueDark }]}>Export PDF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleUpdateQuotation}
+                    style={[styles.footerBtn, { backgroundColor: meta.accent, borderColor: meta.accent }]}
+                >
+                    <Text style={[styles.footerBtnText, { color: color.white }]}>Update Quotation</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
+
+export default QuoteDetailScreen;
 
 const styles = StyleSheet.create({
+    screen: {
+        flex: 1,
+        backgroundColor: color.primaryBlueDark,
+    },
+    safe: {
+        flex: 1,
+    },
+    sheet: {
+        flex: 1,
+        backgroundColor: color.screenBackground,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        marginTop: 12,
+    },
+    stickyFooter: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 100,
+        elevation: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        backgroundColor: color.white,
+        borderTopWidth: 1,
+        borderTopColor: color.borderColor,
+    },
+    footerBtn: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+    },
+    footerBtnSecondary: {
+        backgroundColor: color.white,
+        borderColor: color.primaryBlueDark,
+    },
+    footerBtnText: {
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10,
+        paddingVertical: 2,
+    },
+    infoLabel: {
+        fontWeight: '600',
+        color: color.secondaryText,
+        flexShrink: 1,
+        maxWidth: '40%',
+        marginRight: 8,
+    },
+    infoValue: {
+        flex: 1,
+        flexShrink: 0,
+        textAlign: 'right',
+        color: color.mainText,
+    },
+    na: {
+        color: color.secondaryText,
+        fontStyle: 'italic',
+    },
+    summaryStrip: {
+        flexDirection: 'row',
+        borderWidth: 1,
+        borderRadius: 8,
+        borderColor: color.borderColor,
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+    },
+    summaryCell: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        gap: 4,
+        paddingHorizontal: 6,
+        minWidth: 0,
+    },
+    summaryAmount: {
+        width: '100%',
+        textAlign: 'center',
+        fontWeight: '700',
+    },
+    summaryBorder: {
+        borderRightWidth: 1,
+        borderColor: color.borderColor,
+    },
+    sectionCard: {
+        borderWidth: 1,
+        borderRadius: 10,
+        borderColor: color.borderColor,
+        padding: 10,
+        gap: 10,
+        backgroundColor: '#FFFFFF',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
     table: {
         borderWidth: 1,
         borderColor: '#E5E7EB',
         borderRadius: 8,
         overflow: 'hidden',
         backgroundColor: '#FFFFFF',
-        marginVertical: 10,
+        marginVertical: 6,
     },
     row: {
         flexDirection: 'row',
@@ -428,12 +701,35 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F3F4F6',
     },
     label: {
-        // flex: 1,
+        flexShrink: 1,
+        maxWidth: '42%',
         marginRight: 10,
-        width: '60%',
     },
     value: {
         flex: 1,
+        flexShrink: 0,
         textAlign: 'right',
+        minWidth: 0,
+    },
+    addonCard: {
+        gap: 6,
+        borderWidth: 1,
+        borderColor: color.borderColor,
+        borderRadius: 8,
+        padding: 10,
+        backgroundColor: color.lightSerface,
+    },
+    addonHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 4,
+    },
+    addonBadge: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

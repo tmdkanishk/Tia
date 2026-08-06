@@ -7,6 +7,7 @@ import IARCalculatorScreen from '../screens/AppScreens/IARCalculatorScreen';
 import FireCalculatorScreen from '../screens/AppScreens/FireCalculatorScreen'
 import AddonScreen from '../screens/AppScreens/AddonScreen'
 import QuoteDetailScreen from '../screens/AppScreens/QuoteDetailScreen'
+import UpdateQuotationScreen from '../screens/AppScreens/UpdateQuotationScreen'
 
 
 
@@ -26,6 +27,7 @@ const MainStack = () => {
                 <Stack.Screen name="FireCalculator" component={FireCalculatorScreen} />
                 <Stack.Screen name="Addon" component={AddonScreen} />
                 <Stack.Screen name="QuoteDetail" component={QuoteDetailScreen} />
+                <Stack.Screen name="UpdateQuotation" component={UpdateQuotationScreen} />
 
 
             </Stack.Navigator>
