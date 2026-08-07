@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Platform, StyleSheet, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Platform, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import React, { useCallback, useMemo, useState } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { color } from '../../utility/color'
@@ -10,6 +10,7 @@ import { checkPermission } from '../../utility/permissions'
 import { IconComponent, icons } from '../../components/IconComponent'
 import ReactNativeBlobUtil from 'react-native-blob-util'
 import { getQuotationDetails, getQuotationPdfExportPath, resolveQuoteType } from '../../features/quotations/quotationsAPI'
+import { normalizeQuotationDetail } from '../../features/quotations/normalizeQuotationDetail'
 import { BASE_URL } from '../../config/env'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAppLoading, showModal } from '../../features/app/appSlice'
@@ -32,12 +33,19 @@ const FIRE_LABELS = {
     fireSection: 'Fire Section Sum Insured',
     burglarySection: 'Burglary Section Sum Insured',
     iibRate: 'IIB Rate',
+    discountOnIibPct: 'Discount on IIB %',
+    netRateIib: 'Net IIB Rate',
     netIIBRate: 'Net IIB Rate',
+    eqRate: 'Earthquake Rate',
     earthquakeRate: 'Earthquake Rate',
+    eqDiscountPct: 'EQ Discount %',
     stfiRate: 'STFI Rate',
+    stfiDiscountPct: 'STFI Discount %',
     netEqRate: 'Net Earthquake Rate',
     netStfiRate: 'Net STFI Rate',
     netCatRate: 'Net Cat Rate',
+    finalRate: 'Final Rate',
+    totalRate: 'Total Rate',
     finalFireRate: 'Final Fire Rate',
     terrorismRate: 'Terrorism Rate',
     bhbRate: 'BHB Rate',
@@ -54,11 +62,20 @@ const FIRE_DISCOUNT_KEYS = ['iib', 'earthquake', 'stfi'];
 const FIRE_ASSET_KEYS = ['building', 'plantAndMachinery', 'stock', 'furnitureFixturesFittings', 'otherContents'];
 const FIRE_SI_SECTION_KEYS = ['total', 'fireSection', 'burglarySection'];
 const FIRE_RATE_KEYS = [
-    'iibRate', 'netIIBRate', 'earthquakeRate', 'stfiRate',
-    'netEqRate', 'netStfiRate', 'netCatRate', 'finalFireRate',
-    'terrorismRate', 'bhbRate',
+    'iibRate',
+    'discountOnIibPct',
+    'netRateIib',
+    'eqRate',
+    'eqDiscountPct',
+    'stfiRate',
+    'stfiDiscountPct',
+    'netCatRate',
+    'finalRate',
+    'totalRate',
+    'terrorismRate',
+    'bhbRate',
 ];
-const FIRE_PREMIUM_KEYS = ['fire', 'terrorism', 'burglary', 'netPremium', 'gstPercent', 'gstAmount', 'grossPremium'];
+const FIRE_PREMIUM_KEYS = ['netPremium', 'gstPercent', 'gstAmount', 'grossPremium'];
 
 const humanizeKey = (key = '') =>
     key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/^./, (s) => s.toUpperCase()).trim();
@@ -66,14 +83,6 @@ const humanizeKey = (key = '') =>
 const getLabel = (key, labels = {}) => labels[key] || FIRE_LABELS[key] || humanizeKey(key);
 
 const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
-
-const parseMaybeJson = (value) => {
-    if (value == null || value === '') return null;
-    if (typeof value === 'string') {
-        try { return JSON.parse(value); } catch (e) { return value; }
-    }
-    return value;
-};
 
 const isEmptyValue = (value) =>
     value === null || value === undefined || value === '';
@@ -129,46 +138,61 @@ const QuoteDetailScreen = ({ route }) => {
     const { accessToken } = useSelector(state => state.auth);
 
     const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [sectionShow, setSectionShow] = useState({});
     const [quoteType, setQuoteType] = useState(() => resolveQuoteType(rawQuoteType) || 'fire');
 
     const meta = TYPE_META[quoteType] || TYPE_META.fire;
 
+    // Always hit GET /api/quotations/:id on focus, then fill UI from response
     useFocusEffect(
         useCallback(() => {
+            let cancelled = false;
+
+            const fetchQuotationDetails = async () => {
+                if (!quoteId) {
+                    Alert.alert('Error', 'Missing quotation id');
+                    if (!cancelled) setLoading(false);
+                    return;
+                }
+
+                try {
+                    if (!cancelled) {
+                        setLoading(true);
+                        setData(null);
+                    }
+                    const response = await getQuotationDetails(quoteId);
+                    if (cancelled) return;
+
+                    const payload = response?.data?.data ?? response?.data ?? null;
+                    console.log('Quotation Details response ', payload);
+
+                    const resolvedType = resolveQuoteType(
+                        payload?.quotation?.type,
+                        payload?.quoteDetails?.type,
+                        payload?.type,
+                        rawQuoteType,
+                    );
+                    if (resolvedType) setQuoteType(resolvedType);
+                    setData(payload);
+                } catch (error) {
+                    if (cancelled) return;
+                    console.log('error', error?.response?.data || error);
+                    setData(null);
+                    Alert.alert('Error', error?.response?.data?.message || 'Failed to load quotation details');
+                } finally {
+                    if (!cancelled) setLoading(false);
+                }
+            };
+
+            // Fetch immediately (don't wait for interactions) so detail always loads from API
             fetchQuotationDetails();
+
+            return () => {
+                cancelled = true;
+            };
         }, [quoteId, rawQuoteType])
     );
-
-    const fetchQuotationDetails = async () => {
-        const requestType = resolveQuoteType(rawQuoteType, quoteType);
-
-        if (!requestType) {
-            Alert.alert('Error', 'Missing quotation type (fire / business / iar)');
-            return;
-        }
-
-        try {
-            dispatch(setAppLoading(true));
-            const response = await getQuotationDetails(quoteId, requestType);
-            const payload = response.data?.data || null;
-            console.log('Quotation Details response ', payload);
-
-            const resolvedType = resolveQuoteType(
-                payload?.quotation?.type,
-                payload?.quoteDetails?.type,
-                payload?.type,
-                requestType,
-            );
-            if (resolvedType) setQuoteType(resolvedType);
-            setData(payload);
-        } catch (error) {
-            console.log('error', error?.response?.data);
-            Alert.alert('Error', error?.response?.data?.message || 'Failed to load quotation details');
-        } finally {
-            dispatch(setAppLoading(false));
-        }
-    };
 
     const downloadFile = async (ext, url) => {
         try {
@@ -224,7 +248,7 @@ const QuoteDetailScreen = ({ route }) => {
     };
 
     const handleExportPdf = () => {
-        const path = getQuotationPdfExportPath(quoteId, quoteType);
+        const path = getQuotationPdfExportPath(quoteId);
         downloadFile('.pdf', path);
     };
 
@@ -243,48 +267,7 @@ const QuoteDetailScreen = ({ route }) => {
         });
     };
 
-    // Normalize both new API shape and any legacy leftovers
-    const model = useMemo(() => {
-        const root = data || {};
-        const calculation = parseMaybeJson(root.calculation) || {};
-
-        const quotation = root.quotation || root.quoteDetails || {};
-        const customer = root.customer || {};
-        const risk = root.risk || root.riskDetails || {};
-        const policy = root.policy || root.policyDetails || {};
-        const financial = root.financial || {};
-
-        const sumInsured = financial.sumInsured || calculation.sumInsured || {};
-        const assetBreakup = sumInsured.assetBreakup || {};
-        const discounts = financial.discounts || root.discounts || {};
-        const premium = financial.premium || root.premium || calculation.premium || {};
-        const rates = calculation.rates || root.rates || {};
-        const inputs = calculation.inputs || calculation.customerDetails || {};
-
-        const addons = Array.isArray(root.addons) ? root.addons : [];
-        const wordings = Array.isArray(root.wordings) ? root.wordings : [];
-        const termsConditions = Array.isArray(root.termsConditions) ? root.termsConditions : [];
-
-        return {
-            quotation,
-            customer,
-            risk,
-            policy,
-            covers: policy.covers || {},
-            sumInsured,
-            assetBreakup,
-            discounts,
-            premium,
-            rates,
-            inputs,
-            addons,
-            wordings,
-            termsConditions,
-            remarks: root.remarks,
-            exports: root.exports,
-            totalSi: sumInsured.total ?? root.sumInsured,
-        };
-    }, [data]);
+    const model = useMemo(() => normalizeQuotationDetail(data || {}), [data]);
 
     const renderAmount = (value, style) => (
         <Text
@@ -350,25 +333,34 @@ const QuoteDetailScreen = ({ route }) => {
                     <IconComponent icon={meta.icon} size={22} tintColor={meta.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
-                    <Text style={textStyles.subtitle}>{model.quotation?.quotationNo || NA}</Text>
+                    <Text style={textStyles.subtitle}>
+                        {model.quotation?.quotationNumber || model.quotation?.quotationNo || NA}
+                    </Text>
                     <Text style={[textStyles.caption, { color: meta.accent, marginTop: 2, textTransform: 'uppercase' }]}>
                         {(model.quotation?.type || quoteType)}
                     </Text>
                 </View>
             </View>
 
+            {renderInfoRow('Policy Type', model.quotation?.policyType)}
+            {renderInfoRow(
+                'Quotation Date',
+                model.quotation?.quotationDate ? formattedDate(model.quotation.quotationDate) : null
+            )}
             {renderInfoRow('Company', model.quotation?.companyName)}
             {renderInfoRow('Product', model.quotation?.productName)}
             {renderInfoRow('Customer Name', model.customer?.clientName)}
             {renderInfoRow('Broker', model.customer?.brokerName)}
-            {renderInfoRow('IMD', model.customer?.imd)}
+            {renderInfoRow('IMD', model.customer?.imdName || model.customer?.imd)}
             {renderInfoRow('Risk Location', model.risk?.location || model.risk?.riskLocation)}
-            {renderInfoRow('District', model.risk?.district)}
+            {renderInfoRow('City', model.risk?.city || model.risk?.district)}
             {renderInfoRow('State', model.risk?.state)}
             {renderInfoRow('Pin Code', model.risk?.pinCode)}
             {renderInfoRow('Earthquake Zone', model.risk?.earthquakeZone)}
+            {renderInfoRow('Earthquake Rate', formatDisplayValue(model.risk?.earthquakeRate))}
             {renderInfoRow('Risk Code', model.risk?.riskCode ?? model.inputs?.riskCode)}
-            {renderInfoRow('Risk Description', model.risk?.riskDescription || model.inputs?.occupancy)}
+            {renderInfoRow('Occupancy', model.risk?.occupancy || model.risk?.riskDescription || model.inputs?.occupancy)}
+            {renderInfoRow('Risk Sum Insured', formatDisplayValue(model.risk?.sumInsured, { money: true }), { money: true })}
             {renderInfoRow('Case Type', model.policy?.caseType)}
             {renderInfoRow('Previous Insurer', model.policy?.previousInsurer)}
             {renderInfoRow('Business Age', model.policy?.businessAge)}
@@ -378,8 +370,9 @@ const QuoteDetailScreen = ({ route }) => {
             {renderInfoRow('Terrorism Cover', formatDisplayValue(model.covers?.terrorism))}
             {renderInfoRow('Fire Fighting Measures', formatDisplayValue(model.policy?.fireFightingMeasures))}
             {renderInfoRow('CCTV Installed', formatDisplayValue(model.policy?.cctvInstalled))}
-            {renderInfoRow('Hypothecation', formatDisplayValue(model.policy?.hypothecation))}
+            {renderInfoRow('Hypothecation', formatDisplayValue(model.policy?.hypothecationDetails ?? model.policy?.hypothecation))}
             {renderInfoRow('Bank Name', model.policy?.bankName)}
+            {renderInfoRow('Bank Branch', model.policy?.bankBranch)}
             {renderInfoRow('Created', model.quotation?.createdAt ? formattedDate(model.quotation.createdAt) : null)}
             {renderInfoRow('Updated', model.quotation?.updatedAt ? formattedDate(model.quotation.updatedAt) : null)}
         </View>
@@ -424,10 +417,58 @@ const QuoteDetailScreen = ({ route }) => {
         );
     };
 
+    const renderCoverageSections = () => {
+        if (!model.coverageSections?.length) {
+            return <Text style={[textStyles.bodySmall, styles.na, { paddingVertical: 8 }]}>{NA}</Text>;
+        }
+
+        return (
+            <View style={{ gap: 12 }}>
+                {model.coverageSections.map((section, index) => (
+                    <View key={section?.section_key || index} style={styles.addonCard}>
+                        <Text style={[textStyles.body, { fontWeight: '700', marginBottom: 6 }]}>
+                            {section?.section_name || `Section ${index + 1}`}
+                        </Text>
+                        {renderInfoRow('Rate', formatDisplayValue(section?.rate))}
+                        {renderInfoRow('Premium', formatDisplayValue(section?.premium, { money: true }), { money: true })}
+                        {renderInfoRow('Excess', section?.excess)}
+                        {renderInfoRow(
+                            'Total SI',
+                            formatDisplayValue(section?.total_sum_insured ?? section?.totalSumInsured, { money: true }),
+                            { money: true }
+                        )}
+                        {renderInfoRow(
+                            'Total Premium',
+                            formatDisplayValue(section?.total_premium ?? section?.totalPremium, { money: true }),
+                            { money: true }
+                        )}
+
+                        <View style={{ marginTop: 8, gap: 4 }}>
+                            <Text style={[textStyles.caption, { color: color.secondaryText, fontWeight: '700' }]}>
+                                Items
+                            </Text>
+                            {(section?.items || []).map((item, itemIndex) => (
+                                <View key={`${index}-${itemIndex}`} style={styles.infoRow}>
+                                    <Text style={[textStyles.bodySmall, styles.infoLabel]}>
+                                        {item?.particular || `Item ${itemIndex + 1}`}
+                                    </Text>
+                                    {renderAmount(
+                                        formatMoney(item?.sum_insured ?? item?.sumInsured),
+                                        [textStyles.bodySmall, styles.infoValue]
+                                    )}
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
     const sumInsuredRows = [
         ...buildRows(model.assetBreakup, FIRE_ASSET_KEYS, { money: true, labels: FIRE_LABELS }),
         ...buildRows(model.sumInsured, FIRE_SI_SECTION_KEYS, { money: true, labels: FIRE_LABELS }),
-    ];
+    ].filter((row) => row.value !== NA || FIRE_ASSET_KEYS.includes(row.key) || row.key === 'total');
 
     const footerBottomPad = Math.max(insets.bottom, 12);
 
@@ -436,6 +477,14 @@ const QuoteDetailScreen = ({ route }) => {
             <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
                 <BackHeader title={meta.title} />
                 <View style={styles.sheet}>
+                    {loading && !data ? (
+                        <View style={styles.inlineLoader}>
+                            <ActivityIndicator size="large" color={meta.accent} />
+                            <Text style={[textStyles.bodySmall, { color: color.secondaryText, marginTop: 10 }]}>
+                                Loading quotation…
+                            </Text>
+                        </View>
+                    ) : (
                     <ScrollView
                         style={{ flex: 1 }}
                         showsVerticalScrollIndicator={false}
@@ -478,6 +527,14 @@ const QuoteDetailScreen = ({ route }) => {
                                     )}
                                 </View>
                             </View>
+
+                            {renderCollapsibleSection(
+                                'coverage',
+                                `Coverage Sections (${model.coverageSections?.length || 0})`,
+                                renderCoverageSections(),
+                                true,
+                                'shield-outline'
+                            )}
 
                             {renderCollapsibleSection(
                                 'discounts',
@@ -549,21 +606,24 @@ const QuoteDetailScreen = ({ route }) => {
                             )}
                         </View>
                     </ScrollView>
+                    )}
                 </View>
             </SafeAreaView>
 
             <View pointerEvents="box-none" style={[styles.stickyFooter, { paddingBottom: footerBottomPad }]}>
                 <TouchableOpacity
                     activeOpacity={0.85}
+                    disabled={loading || !data}
                     onPress={handleExportPdf}
-                    style={[styles.footerBtn, styles.footerBtnSecondary]}
+                    style={[styles.footerBtn, styles.footerBtnSecondary, (loading || !data) && { opacity: 0.5 }]}
                 >
                     <Text style={[styles.footerBtnText, { color: color.primaryBlueDark }]}>Export PDF</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     activeOpacity={0.85}
+                    disabled={loading || !data}
                     onPress={handleUpdateQuotation}
-                    style={[styles.footerBtn, { backgroundColor: meta.accent, borderColor: meta.accent }]}
+                    style={[styles.footerBtn, { backgroundColor: meta.accent, borderColor: meta.accent }, (loading || !data) && { opacity: 0.5 }]}
                 >
                     <Text style={[styles.footerBtnText, { color: color.white }]}>Update Quotation</Text>
                 </TouchableOpacity>
@@ -588,6 +648,12 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         marginTop: 12,
+    },
+    inlineLoader: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 40,
     },
     stickyFooter: {
         position: 'absolute',

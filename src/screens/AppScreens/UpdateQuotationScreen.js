@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, InteractionManager, ActivityIndicator } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,6 +17,15 @@ const toText = (value) => (value == null ? '' : String(value));
 const toYesNo = (value) => {
   if (value === true || value === 'Yes' || value === 'yes' || value === 1 || value === '1') return 'Yes';
   if (value === false || value === 'No' || value === 'no' || value === 0 || value === '0') return 'No';
+  return '';
+};
+
+const CASE_TYPE_OPTIONS = ['Fresh', 'Rollover'];
+
+const toCaseType = (value) => {
+  const text = toText(value).trim().toLowerCase();
+  if (text === 'fresh') return 'Fresh';
+  if (text === 'rollover' || text === 'roll over') return 'Rollover';
   return '';
 };
 
@@ -54,13 +63,8 @@ const toYesNoEnum = (value) => {
 };
 
 const emptyForm = {
-  companyName: '',
-  productName: '',
   brokerName: '',
-  imd: '',
-  district: '',
-  state: '',
-  earthquakeZone: '',
+  imdName: '',
   caseType: '',
   previousInsurer: '',
   businessAge: '',
@@ -68,49 +72,78 @@ const emptyForm = {
   constructionType: '',
   fireFightingMeasures: 'No',
   cctvInstalled: 'No',
-  hypothecation: 'No',
+  hypothecationDetails: 'No',
   bankName: '',
-  remarks: '',
+  bankBranch: '',
   wordings: [''],
   termsConditions: [''],
 };
 
-const buildInitialForm = (data = {}) => {
-  if (!data || typeof data !== 'object') return { ...emptyForm, wordings: [''], termsConditions: [''] };
+/** Normalize GET detail / raw DB row into one object we can map from */
+const normalizeDetailPayload = (data = {}) => {
+  if (!data || typeof data !== 'object') return {};
 
-  const quotation = data.quotation || data.quoteDetails || {};
-  const customer = data.customer || {};
-  const risk = data.risk || data.riskDetails || {};
-  const policy = data.policy || data.policyDetails || {};
+  let parsedJson = {};
+  if (typeof data.quotationJson === 'string' && data.quotationJson.trim()) {
+    try {
+      parsedJson = JSON.parse(data.quotationJson) || {};
+    } catch (e) {
+      parsedJson = {};
+    }
+  } else if (data.quotationJson && typeof data.quotationJson === 'object') {
+    parsedJson = data.quotationJson;
+  }
 
   return {
-    companyName: toText(quotation.companyName ?? data.companyName),
-    productName: toText(quotation.productName ?? data.productName),
-    brokerName: toText(customer.brokerName ?? data.brokerName),
-    imd: toText(customer.imd ?? data.imd),
-    district: toText(risk.district ?? data.district),
-    state: toText(risk.state ?? data.state),
-    earthquakeZone: toText(risk.earthquakeZone ?? data.earthquakeZone),
-    caseType: toText(policy.caseType ?? data.caseType),
-    previousInsurer: toText(policy.previousInsurer ?? data.previousInsurer),
-    businessAge: toText(policy.businessAge ?? data.businessAge),
-    industryType: toText(policy.industryType ?? data.industryType),
-    constructionType: toText(policy.constructionType ?? data.constructionType),
-    fireFightingMeasures: toYesNo(policy.fireFightingMeasures ?? data.fireFightingMeasures) || 'No',
-    cctvInstalled: toYesNo(policy.cctvInstalled ?? data.cctvInstalled) || 'No',
-    hypothecation: toYesNo(policy.hypothecation ?? data.hypothecation) || 'No',
-    bankName: toText(policy.bankName ?? data.bankName),
-    remarks: toText(data.remarks),
-    wordings: toStringList(data.wordings),
-    termsConditions: toStringList(data.termsConditions),
+    ...parsedJson,
+    ...data,
+    quotation: data.quotation || parsedJson.quotation || data.quoteDetails || {},
+    customer: data.customer || parsedJson.customer || data.riskDetails || {},
+    risk: data.risk || parsedJson.risk || data.riskDetails || {},
+    policy: data.policy || parsedJson.policy || data.policyDetails || {},
+    wordings: data.wordings ?? parsedJson.wordings,
+    termsConditions: data.termsConditions ?? parsedJson.termsConditions,
   };
 };
 
-const YesNoToggle = ({ label, value, onChange }) => (
+const buildInitialForm = (data = {}) => {
+  const root = normalizeDetailPayload(data);
+  if (!Object.keys(root).length) {
+    return { ...emptyForm, wordings: [''], termsConditions: [''] };
+  }
+
+  const customer = root.customer || {};
+  const risk = root.risk || {};
+  const policy = root.policy || {};
+
+  return {
+    brokerName: toText(root.brokerName ?? customer.brokerName ?? risk.brokerName),
+    imdName: toText(root.imdName ?? customer.imdName ?? customer.imd ?? risk.imdName ?? root.imd),
+    caseType: toCaseType(root.caseType ?? policy.caseType),
+    previousInsurer: toText(root.previousInsurer ?? policy.previousInsurer),
+    businessAge: toText(root.businessAge ?? policy.businessAge),
+    industryType: toText(root.industryType ?? policy.industryType),
+    constructionType: toText(root.constructionType ?? policy.constructionType),
+    fireFightingMeasures: toYesNo(root.fireFightingMeasures ?? policy.fireFightingMeasures) || 'No',
+    cctvInstalled: toYesNo(root.cctvInstalled ?? policy.cctvInstalled) || 'No',
+    hypothecationDetails: toYesNo(
+      root.hypothecationDetails
+      ?? policy.hypothecationDetails
+      ?? root.hypothecation
+      ?? policy.hypothecation
+    ) || 'No',
+    bankName: toText(root.bankName ?? policy.bankName),
+    bankBranch: toText(root.bankBranch ?? policy.bankBranch),
+    wordings: toStringList(root.wordings),
+    termsConditions: toStringList(root.termsConditions),
+  };
+};
+
+const OptionToggle = ({ label, value, onChange, options = ['Yes', 'No'] }) => (
   <View style={styles.yesNoRow}>
     <Text style={styles.yesNoLabel}>{label}</Text>
     <View style={styles.yesNoOptions}>
-      {['Yes', 'No'].map((option) => {
+      {options.map((option) => {
         const selected = value === option;
         return (
           <TouchableOpacity
@@ -126,6 +159,8 @@ const YesNoToggle = ({ label, value, onChange }) => (
     </View>
   </View>
 );
+
+const YesNoToggle = (props) => <OptionToggle {...props} options={['Yes', 'No']} />;
 
 const ListFieldEditor = ({ title, items = [''], onChange, placeholder }) => {
   const updateItem = (index, text) => {
@@ -192,75 +227,75 @@ const UpdateQuotationScreen = () => {
     )
   );
 
-  const [form, setForm] = useState(() => buildInitialForm(quotationData));
-  const [sourceDetail, setSourceDetail] = useState(quotationData || null);
-  const [quotationNo, setQuotationNo] = useState(
-    quotationData?.quotation?.quotationNo || quotationData?.quoteDetails?.quotationNo || ''
-  );
+  const [form, setForm] = useState(() => ({ ...emptyForm }));
+  const [sourceDetail, setSourceDetail] = useState(null);
+  const [quotationNo, setQuotationNo] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
-    if (quotationData) {
-      setForm(buildInitialForm(quotationData));
-      setSourceDetail(quotationData);
+    let cancelled = false;
+
+    const applyPayload = (payload = {}) => {
+      setForm(buildInitialForm(payload));
+      setSourceDetail(payload);
       setQuotationNo(
-        quotationData?.quotation?.quotationNo ||
-        quotationData?.quoteDetails?.quotationNo ||
-        ''
+        payload?.quotation?.quotationNumber
+        || payload?.quotation?.quotationNo
+        || payload?.quoteDetails?.quotationNumber
+        || payload?.quoteDetails?.quotationNo
+        || payload?.quotationNumber
+        || payload?.quotationNo
+        || ''
       );
-      const fromData = resolveQuoteType(
-        quotationData?.quotation?.type,
-        quotationData?.quoteDetails?.type,
-        quotationData?.type,
+      const resolvedType = resolveQuoteType(
+        payload?.quotation?.type,
+        payload?.quoteDetails?.type,
+        payload?.type,
         rawQuoteType,
       );
-      if (fromData) setQuoteType(fromData);
-    }
-
-    if (!quoteId) return;
-
-    const load = async () => {
-      const requestType = resolveQuoteType(
-        quoteType,
-        rawQuoteType,
-        quotationData?.quotation?.type,
-        quotationData?.quoteDetails?.type,
-      );
-
-      if (!requestType) {
-        Alert.alert('Error', 'Missing quotation type (fire / business / iar)');
-        return;
-      }
-
-      try {
-        dispatch(setAppLoading(true));
-        const response = await getQuotationDetails(quoteId, requestType);
-        const payload = response.data?.data || {};
-        setForm(buildInitialForm(payload));
-        setSourceDetail(payload);
-        setQuotationNo(
-          payload?.quotation?.quotationNo ||
-          payload?.quoteDetails?.quotationNo ||
-          ''
-        );
-        const resolvedType = resolveQuoteType(
-          payload?.quotation?.type,
-          payload?.quoteDetails?.type,
-          payload?.type,
-          requestType,
-        );
-        if (resolvedType) setQuoteType(resolvedType);
-      } catch (error) {
-        if (!quotationData) {
-          Alert.alert('Error', error?.response?.data?.message || 'Failed to load quotation');
-        }
-      } finally {
-        dispatch(setAppLoading(false));
-      }
+      if (resolvedType) setQuoteType(resolvedType);
     };
 
-    load();
-  }, [quoteId, rawQuoteType, quotationData, dispatch]);
+    // Optional instant paint from route params, then always refresh from GET
+    if (quotationData) {
+      applyPayload(quotationData);
+    }
+
+    if (!quoteId) {
+      setPageLoading(false);
+      return undefined;
+    }
+
+    const task = InteractionManager.runAfterInteractions(() => {
+      if (cancelled) return;
+
+      const load = async () => {
+        try {
+          setPageLoading(true);
+          const response = await getQuotationDetails(quoteId);
+          if (cancelled) return;
+          const payload = response.data?.data || response.data || {};
+          console.log('Update quotation GET detail', payload);
+          applyPayload(payload);
+        } catch (error) {
+          console.log('Update quotation GET error', error?.response?.data || error);
+          if (!quotationData) {
+            Alert.alert('Error', error?.response?.data?.message || 'Failed to load quotation');
+          }
+        } finally {
+          if (!cancelled) setPageLoading(false);
+        }
+      };
+
+      load();
+    });
+
+    return () => {
+      cancelled = true;
+      task.cancel?.();
+    };
+  }, [quoteId, rawQuoteType]);
 
   const setField = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -269,71 +304,23 @@ const UpdateQuotationScreen = () => {
   const buildUpdatePayload = () => {
     const wordingList = form.wordings.map((item) => item.trim()).filter(Boolean);
     const termsList = form.termsConditions.map((item) => item.trim()).filter(Boolean);
-    const remarks = form.remarks.trim() || null;
 
-    const fireFightingMeasures = toYesNoEnum(form.fireFightingMeasures);
-    const cctvInstalled = toYesNoEnum(form.cctvInstalled);
-    const hypothecation = toYesNoEnum(form.hypothecation);
-
-    const root = sourceDetail && typeof sourceDetail === 'object' ? sourceDetail : {};
-    const quotation = { ...(root.quotation || root.quoteDetails || {}) };
-    const customer = { ...(root.customer || {}) };
-    const risk = { ...(root.risk || root.riskDetails || {}) };
-    const policy = { ...(root.policy || root.policyDetails || {}) };
-
-    quotation.companyName = form.companyName.trim();
-    quotation.productName = form.productName.trim();
-
-    customer.brokerName = form.brokerName.trim();
-    customer.imd = form.imd.trim();
-
-    risk.district = form.district.trim();
-    risk.state = form.state.trim();
-    risk.earthquakeZone = form.earthquakeZone.trim();
-
-    policy.caseType = form.caseType.trim();
-    policy.previousInsurer = form.previousInsurer.trim();
-    policy.businessAge = form.businessAge.trim();
-    policy.industryType = form.industryType.trim();
-    policy.constructionType = form.constructionType.trim();
-    policy.fireFightingMeasures = fireFightingMeasures === 'Yes';
-    policy.cctvInstalled = cctvInstalled === 'Yes';
-    policy.hypothecation = hypothecation === 'Yes';
-    policy.bankName = form.bankName.trim();
-
-    const mergedDetail = {
-      ...root,
-      quotation,
-      customer,
-      risk,
-      policy,
-      wordings: wordingList,
-      termsConditions: termsList,
-      remarks,
-    };
-
-    // Prisma FireQuotation columns only — wordings/termsConditions are LongText JSON strings
+    // Exact PUT body shape expected by quotations update API
     return {
-      companyName: form.companyName.trim() || null,
-      productName: form.productName.trim() || null,
-      brokerName: form.brokerName.trim() || null,
-      imd: form.imd.trim() || null,
-      district: form.district.trim() || null,
-      state: form.state.trim() || null,
-      earthquakeZone: form.earthquakeZone.trim() || null,
-      caseType: form.caseType.trim() || null,
-      previousInsurer: form.previousInsurer.trim() || null,
-      businessAge: form.businessAge.trim() || null,
-      industryType: form.industryType.trim() || null,
-      constructionType: form.constructionType.trim() || null,
-      fireFightingMeasures,
-      cctvInstalled,
-      hypothecation,
-      bankName: form.bankName.trim() || null,
-      remarks,
+      imdName: form.imdName.trim(),
+      brokerName: form.brokerName.trim(),
+      caseType: form.caseType.trim(),
+      previousInsurer: form.previousInsurer.trim(),
+      businessAge: form.businessAge.trim(),
+      industryType: form.industryType.trim(),
+      constructionType: form.constructionType.trim(),
+      fireFightingMeasures: form.fireFightingMeasures === 'Yes',
+      cctvInstalled: form.cctvInstalled === 'Yes',
+      hypothecationDetails: toYesNoEnum(form.hypothecationDetails),
+      bankName: form.bankName.trim(),
+      bankBranch: form.bankBranch.trim(),
       wordings: toJsonText(wordingList),
       termsConditions: toJsonText(termsList),
-      quotationJson: JSON.stringify(mergedDetail),
     };
   };
 
@@ -352,16 +339,8 @@ const UpdateQuotationScreen = () => {
 
   const handleSave = async () => {
     try {
-      const type = resolveQuoteType(
-        quoteType,
-        sourceDetail?.quotation?.type,
-        sourceDetail?.quoteDetails?.type,
-        sourceDetail?.type,
-        rawQuoteType,
-      );
-
-      if (!type) {
-        Alert.alert('Error', 'Missing quotation type (fire / business / iar)');
+      if (!quoteId) {
+        Alert.alert('Error', 'Missing quotation id');
         return;
       }
 
@@ -369,9 +348,9 @@ const UpdateQuotationScreen = () => {
       dispatch(setAppLoading(true));
 
       const payload = buildUpdatePayload();
-      console.log('Update quotation payload', quoteId, type, payload);
+      console.log('Update quotation payload', quoteId, payload);
 
-      await updateQuotation(quoteId, type, payload);
+      await updateQuotation(quoteId, payload);
       dispatch(showModal({ title: 'Success', message: 'Quotation updated successfully.' }));
       navigation.goBack();
     } catch (error) {
@@ -393,29 +372,16 @@ const UpdateQuotationScreen = () => {
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <BackHeader title="Update Quotation" subTitle={subtitle} />
         <View style={styles.sheet}>
+          {pageLoading ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color={color.primaryBlueDark} />
+            </View>
+          ) : (
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ padding: 16, paddingBottom: 110 + Math.max(insets.bottom, 12), gap: 12 }}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>Company & Product</Text>
-              <InputField
-                label="Company Name"
-                value={form.companyName}
-                onChangeText={(text) => setField('companyName', text)}
-                placeholder="Company name"
-                containerInputStyle={styles.inputPad}
-              />
-              <InputField
-                label="Product Name"
-                value={form.productName}
-                onChangeText={(text) => setField('productName', text)}
-                placeholder="Product name"
-                containerInputStyle={styles.inputPad}
-              />
-            </View>
-
             <View style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>Broker Details</Text>
               <InputField
@@ -426,47 +392,21 @@ const UpdateQuotationScreen = () => {
                 containerInputStyle={styles.inputPad}
               />
               <InputField
-                label="IMD"
-                value={form.imd}
-                onChangeText={(text) => setField('imd', text)}
-                placeholder="IMD code"
-                containerInputStyle={styles.inputPad}
-              />
-            </View>
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>Location Meta</Text>
-              <InputField
-                label="District"
-                value={form.district}
-                onChangeText={(text) => setField('district', text)}
-                placeholder="District"
-                containerInputStyle={styles.inputPad}
-              />
-              <InputField
-                label="State"
-                value={form.state}
-                onChangeText={(text) => setField('state', text)}
-                placeholder="State"
-                containerInputStyle={styles.inputPad}
-              />
-              <InputField
-                label="Earthquake Zone"
-                value={form.earthquakeZone}
-                onChangeText={(text) => setField('earthquakeZone', text)}
-                placeholder="Zone"
+                label="IMD Name"
+                value={form.imdName}
+                onChangeText={(text) => setField('imdName', text)}
+                placeholder="IMD name"
                 containerInputStyle={styles.inputPad}
               />
             </View>
 
             <View style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>Policy Details</Text>
-              <InputField
+              <OptionToggle
                 label="Case Type"
                 value={form.caseType}
-                onChangeText={(text) => setField('caseType', text)}
-                placeholder="Fresh"
-                containerInputStyle={styles.inputPad}
+                options={CASE_TYPE_OPTIONS}
+                onChange={(value) => setField('caseType', value)}
               />
               <InputField
                 label="Previous Insurer"
@@ -479,21 +419,21 @@ const UpdateQuotationScreen = () => {
                 label="Business Age"
                 value={form.businessAge}
                 onChangeText={(text) => setField('businessAge', text)}
-                placeholder="5 Years"
+                placeholder="5-10"
                 containerInputStyle={styles.inputPad}
               />
               <InputField
                 label="Industry Type"
                 value={form.industryType}
                 onChangeText={(text) => setField('industryType', text)}
-                placeholder="Industry type"
+                placeholder="Engineering"
                 containerInputStyle={styles.inputPad}
               />
               <InputField
                 label="Construction Type"
                 value={form.constructionType}
                 onChangeText={(text) => setField('constructionType', text)}
-                placeholder="RCC"
+                placeholder="Pucca"
                 containerInputStyle={styles.inputPad}
               />
 
@@ -509,9 +449,9 @@ const UpdateQuotationScreen = () => {
                   onChange={(value) => setField('cctvInstalled', value)}
                 />
                 <YesNoToggle
-                  label="Hypothecation"
-                  value={form.hypothecation}
-                  onChange={(value) => setField('hypothecation', value)}
+                  label="Hypothecation Details"
+                  value={form.hypothecationDetails}
+                  onChange={(value) => setField('hypothecationDetails', value)}
                 />
               </View>
 
@@ -520,6 +460,13 @@ const UpdateQuotationScreen = () => {
                 value={form.bankName}
                 onChangeText={(text) => setField('bankName', text)}
                 placeholder="Bank name"
+                containerInputStyle={styles.inputPad}
+              />
+              <InputField
+                label="Bank Branch"
+                value={form.bankBranch}
+                onChangeText={(text) => setField('bankBranch', text)}
+                placeholder="Bank branch"
                 containerInputStyle={styles.inputPad}
               />
             </View>
@@ -537,20 +484,8 @@ const UpdateQuotationScreen = () => {
               onChange={(items) => setField('termsConditions', items)}
               placeholder="Term"
             />
-
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>Remarks</Text>
-              <TextInput
-                value={form.remarks}
-                onChangeText={(text) => setField('remarks', text)}
-                placeholder="Add remarks"
-                placeholderTextColor="#999"
-                multiline
-                textAlignVertical="top"
-                style={styles.remarksInput}
-              />
-            </View>
           </ScrollView>
+          )}
         </View>
       </SafeAreaView>
 

@@ -43,7 +43,7 @@ export const getQuotations = ({
     params.append('search', search);
   }
 
-  // Omit quoteType for "all" — API returns combined fire + business + iar
+  // Optional list filter only (detail/update/delete no longer use quoteType)
   const normalizedTab = normalizeQuoteType(tab);
   if (normalizedTab) {
     params.append('quoteType', normalizedTab);
@@ -52,34 +52,23 @@ export const getQuotations = ({
   return apiClient.get(`/api/quotations?${params.toString()}`);
 };
 
-export const getQuotationDetails = (quoteId, quoteType) => {
-  const type = normalizeQuoteType(quoteType);
-  if (!type) {
-    return Promise.reject(new Error('quoteType is required (fire | business | iar)'));
-  }
-  return apiClient.get(`/api/quotations/${quoteId}?quoteType=${type}`);
+/** GET /api/quotations/:id — quoteType query no longer required */
+export const getQuotationDetails = (quoteId) => {
+  return apiClient.get(`/api/quotations/${quoteId}`);
 };
 
-export const updateQuotation = (quoteId, quoteType, payload = {}) => {
-  const type = normalizeQuoteType(quoteType);
-  if (!type) {
-    return Promise.reject(new Error('quoteType is required (fire | business | iar)'));
-  }
-  // quoteType only as query param — not a DB column
+/** PUT /api/quotations/:id */
+export const updateQuotation = (quoteId, payload = {}) => {
   const { quoteType: _ignored, ...body } = payload || {};
-  return apiClient.put(`/api/quotations/${quoteId}?quoteType=${type}`, body);
+  return apiClient.put(`/api/quotations/${quoteId}`, body);
 };
 
-export const deleteQuotation = (quoteId, quoteType) => {
-  const type = normalizeQuoteType(quoteType);
-  if (!type) {
-    return Promise.reject(new Error('quoteType is required (fire | business | iar)'));
-  }
-  return apiClient.delete(`/api/quotations/${quoteId}?quoteType=${type}`);
+/** DELETE /api/quotations/:id */
+export const deleteQuotation = (quoteId) => {
+  return apiClient.delete(`/api/quotations/${quoteId}`);
 };
 
 /** Relative path used by file download (Bearer auth via ReactNativeBlobUtil). */
-export const getQuotationPdfExportPath = (quoteId, quoteType) => {
-  const type = normalizeQuoteType(quoteType);
-  return `/api/quotations/export/${quoteId}/export/pdf?quoteType=${type}`;
+export const getQuotationPdfExportPath = (quoteId) => {
+  return `/api/quotations/${quoteId}/export/pdf`;
 };

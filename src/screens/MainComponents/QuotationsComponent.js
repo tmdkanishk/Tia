@@ -59,12 +59,22 @@ const QuotationsComponent = () => {
                 tab,
             });
             console.log("response", response);
-            const rawData = response?.data?.data || [];
+            // GET /api/quotations → { success, data: [...], pagination }
+            const rawData = Array.isArray(response?.data?.data)
+                ? response.data.data
+                : Array.isArray(response?.data)
+                    ? response.data
+                    : [];
             const tabType = normalizeQuoteType(tab);
-            // Ensure every row has a usable type for detail/update navigation
+            // Map list summary fields to what the UI expects
             const data = rawData.map((item) => ({
                 ...item,
                 type: item?.type || item?.quoteType || tabType || null,
+                quotationNo: item?.quotationNo || item?.quotationNumber || null,
+                clientName: item?.clientName || item?.customerName || '-',
+                sumInsured: item?.sumInsured ?? 0,
+                grossPremium: item?.grossPremium ?? 0,
+                createdAt: item?.createdAt || item?.created_at || null,
             }));
             const pagination = response?.data?.pagination;
             const hasMorePages = typeof pagination?.hasMore === 'boolean'
@@ -148,7 +158,7 @@ const QuotationsComponent = () => {
                     onPress: async () => {
                         try {
                             dispatch(setAppLoading(true));
-                            await deleteQuotation(item?.id, quoteType);
+                            await deleteQuotation(item?.id);
                             dispatch(removeQuotation({ id: item?.id, type: quoteType }));
                             dispatch(showModal({ title: 'Success', message: 'Quotation deleted successfully.' }));
                         } catch (error) {
@@ -191,10 +201,10 @@ const QuotationsComponent = () => {
                         </View>
                         <View style={{ gap: 5, width: '80%' }}>
                             <Text style={textStyles.subtitle}>{item?.clientName || '-'}</Text>
-                            <Text style={[textStyles.bodySmall, { fontSize: 13 }]}>{item?.quotationNo || '-'}</Text>
+                            <Text style={[textStyles.bodySmall, { fontSize: 13 }]}>{item?.quotationNo || item?.quotationNumber || '-'}</Text>
 
                             {!!item?.companyName && (
-                                <Text style={[textStyles.caption, { color: color.secondaryText }]}>{item.companyName}</Text>
+                                <Text style={[textStyles.caption, { color: color.secondaryText }]}>{item?.companyName}</Text>
                             )}
 
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>

@@ -13,6 +13,8 @@ import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
+import { useDispatch } from 'react-redux'
+import { showModal } from '../../features/app/appSlice'
 
 const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Crore in paise (50,00,00,000)
 
@@ -45,6 +47,7 @@ const riskCoverUiToFormKey = {
 
 const BusinessCalculatorScreen = () => {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const { width, height } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
     const [expanded, setExpanded] = useState({
@@ -68,7 +71,7 @@ const BusinessCalculatorScreen = () => {
     });
 
     const [riskCover, setRiskCover] = useState(riskCovers)
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(null); // null | 'calculate' | 'save'
     const [result, setResult] = useState(null);
     const [viewButton, setViewButton] = useState(true);
     const [selectedAddons, setSelectedAddons] = useState([]);
@@ -451,9 +454,9 @@ const BusinessCalculatorScreen = () => {
         handleChange("customerDetails", "occupancy", data?.occupancy_desc);
     }
 
-    const handleCalculate = async () => {
+    const handleCalculate = async (shouldSave = false) => {
         try {
-            setLoading(true);
+            setLoading(shouldSave ? 'save' : 'calculate');
             let updatedForm = getUpdatedRiskCovers(form);
 
             let terrorism = riskCover.find(c => c.key == 'terrorism').selected;
@@ -468,6 +471,7 @@ const BusinessCalculatorScreen = () => {
                 addons: toNumber(updatedForm.sumInsured?.totalSI) >= BUSINESS_ADDON_THRESHOLD
                     ? selectedAddons
                     : [],
+                save: shouldSave,
             });
             console.log("updatedForm", payload);
             // update state
@@ -476,10 +480,10 @@ const BusinessCalculatorScreen = () => {
             console.log("response", response);
 
             if (response?.data?.success === false) {
-                Alert.alert(
-                    "Error",
-                    response?.data?.message || "Something went wrong"
-                );
+                dispatch(showModal({
+                    title: 'Failed',
+                    message: response?.data?.message || 'Something went wrong',
+                }));
                 setResult(null);
                 return;
             }
@@ -487,17 +491,35 @@ const BusinessCalculatorScreen = () => {
             setResult(response.data?.data);
             setViewButton(true);
 
+            if (shouldSave) {
+                dispatch(showModal({
+                    title: 'Success',
+                    message: 'Quotation saved successfully.',
+                }));
+            }
+
         } catch (error) {
             console.log("error", error?.response?.data);
-            Alert.alert(
-                "Error",
-                error?.response?.data?.message || "Something went wrong"
-            );
+            dispatch(showModal({
+                title: 'Failed',
+                message: error?.response?.data?.message || 'Something went wrong',
+            }));
             setResult(null);
         } finally {
-            setLoading(false);
+            setLoading(null);
         }
     }
+
+    const handleSavePress = () => {
+        Alert.alert(
+            'Save Quotation',
+            'Do you want to save it?',
+            [
+                { text: 'No', style: 'cancel' },
+                { text: 'Yes', onPress: () => handleCalculate(true) },
+            ]
+        );
+    };
 
     const toggleRiskCover = (key) => {
         const current = riskCover.find((item) => item.key === key)?.selected;
@@ -999,7 +1021,28 @@ const BusinessCalculatorScreen = () => {
                                         />
                                     )}
 
-                                    <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
+                                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                label="Save"
+                                                width="100%"
+                                                backgroundColor={color.disabledToggle}
+                                                textColor={color.mainText}
+                                                loading={loading === 'save'}
+                                                disabled={!!loading}
+                                                onPress={handleSavePress}
+                                            />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                label="Calculate"
+                                                width="100%"
+                                                loading={loading === 'calculate'}
+                                                disabled={!!loading}
+                                                onPress={() => handleCalculate(false)}
+                                            />
+                                        </View>
+                                    </View>
 
                                     {result && <ResultCardComponent heading='Business' value={result?.premiumSummary?.grossPremium || 0.00}
                                         children={
