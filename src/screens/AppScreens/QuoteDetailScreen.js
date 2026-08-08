@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Platform, StyleSheet, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import React, { useCallback, useMemo, useState } from 'react'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { color } from '../../utility/color'
@@ -6,17 +6,16 @@ import BackHeader from '../../components/BackHeader'
 import Icon from 'react-native-vector-icons/Feather'
 import MaterialDesignIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { textStyles } from '../../utility/textStyles'
-import { checkPermission } from '../../utility/permissions'
 import { IconComponent, icons } from '../../components/IconComponent'
-import ReactNativeBlobUtil from 'react-native-blob-util'
-import { getQuotationDetails, getQuotationPdfExportPath, resolveQuoteType } from '../../features/quotations/quotationsAPI'
+import { getQuotationDetails, resolveQuoteType } from '../../features/quotations/quotationsAPI'
 import { normalizeQuotationDetail } from '../../features/quotations/normalizeQuotationDetail'
-import { BASE_URL } from '../../config/env'
+import { exportQuotationPdf } from '../../utility/exportQuotationPdf'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAppLoading, showModal } from '../../features/app/appSlice'
 import { formattedDate } from '../../utility/helper'
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
+import QuotationActionFooter from '../../components/QuotationActionFooter'
 
 const NA = 'N/A';
 
@@ -194,62 +193,15 @@ const QuoteDetailScreen = ({ route }) => {
         }, [quoteId, rawQuoteType])
     );
 
-    const downloadFile = async (ext, url) => {
-        try {
-            if (!url) {
-                Alert.alert('Unavailable', 'Export file is not available for this quotation.');
-                return;
-            }
-            const needsStoragePermission = Platform.OS === 'android' && Platform.Version <= 28;
-            if (needsStoragePermission) {
-                const status = await checkPermission();
-                if (status) download(ext, url);
-            } else {
-                download(ext, url);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const download = async (ext, url) => {
-        try {
-            dispatch(setAppLoading(true));
-            const file = url.startsWith('http') ? url : `${BASE_URL}${url}`;
-            const { config, fs } = ReactNativeBlobUtil;
-            const fileName = `quotation_${quoteId}_${Date.now()}${ext}`;
-            const filePath = Platform.OS === 'ios'
-                ? `${fs.dirs.DocumentDir}/${fileName}`
-                : `/storage/emulated/0/Download/${fileName}`;
-
-            const configOptions = Platform.OS === 'ios'
-                ? { fileCache: true, path: filePath }
-                : {
-                    fileCache: true,
-                    addAndroidDownloads: {
-                        useDownloadManager: true,
-                        notification: true,
-                        description: 'Downloading File',
-                        mediaScannable: true,
-                        path: filePath,
-                        mime: ext === '.pdf' ? 'application/pdf' : undefined,
-                        title: fileName,
-                    },
-                };
-
-            await config(configOptions).fetch('GET', file, { Authorization: `Bearer ${accessToken}` });
-            dispatch(showModal({ title: 'Success', message: 'Quotation downloaded successfully.' }));
-        } catch (error) {
-            console.log('download error', error);
-            dispatch(showModal({ title: 'Failed', message: 'Something went wrong. Please try again later.' }));
-        } finally {
-            dispatch(setAppLoading(false));
-        }
-    };
-
     const handleExportPdf = () => {
-        const path = getQuotationPdfExportPath(quoteId);
-        downloadFile('.pdf', path);
+        exportQuotationPdf({
+            quoteId,
+            accessToken,
+            onStart: () => dispatch(setAppLoading(true)),
+            onEnd: () => dispatch(setAppLoading(false)),
+            onSuccessToast: (payload) => dispatch(showModal(payload)),
+            onErrorToast: (payload) => dispatch(showModal(payload)),
+        });
     };
 
     const handleUpdateQuotation = () => {
@@ -347,8 +299,6 @@ const QuoteDetailScreen = ({ route }) => {
                 'Quotation Date',
                 model.quotation?.quotationDate ? formattedDate(model.quotation.quotationDate) : null
             )}
-            {renderInfoRow('Company', model.quotation?.companyName)}
-            {renderInfoRow('Product', model.quotation?.productName)}
             {renderInfoRow('Customer Name', model.customer?.clientName)}
             {renderInfoRow('Broker', model.customer?.brokerName)}
             {renderInfoRow('IMD', model.customer?.imdName || model.customer?.imd)}
@@ -594,40 +544,18 @@ const QuoteDetailScreen = ({ route }) => {
                                 false,
                                 'text-box-outline'
                             )}
-
-                            {renderCollapsibleSection(
-                                'remarks',
-                                'Remarks',
-                                <Text style={[textStyles.bodySmall, { paddingVertical: 6 }, isEmptyValue(model.remarks) && styles.na]}>
-                                    {isEmptyValue(model.remarks) ? NA : model.remarks}
-                                </Text>,
-                                false,
-                                'message-text-outline'
-                            )}
                         </View>
                     </ScrollView>
                     )}
                 </View>
             </SafeAreaView>
 
-            <View pointerEvents="box-none" style={[styles.stickyFooter, { paddingBottom: footerBottomPad }]}>
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    disabled={loading || !data}
-                    onPress={handleExportPdf}
-                    style={[styles.footerBtn, styles.footerBtnSecondary, (loading || !data) && { opacity: 0.5 }]}
-                >
-                    <Text style={[styles.footerBtnText, { color: color.primaryBlueDark }]}>Export PDF</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    disabled={loading || !data}
-                    onPress={handleUpdateQuotation}
-                    style={[styles.footerBtn, { backgroundColor: meta.accent, borderColor: meta.accent }, (loading || !data) && { opacity: 0.5 }]}
-                >
-                    <Text style={[styles.footerBtnText, { color: color.white }]}>Update Quotation</Text>
-                </TouchableOpacity>
-            </View>
+            <QuotationActionFooter
+                onExportPdf={handleExportPdf}
+                onUpdate={handleUpdateQuotation}
+                disabled={loading || !data}
+                accentColor={meta.accent}
+            />
         </View>
     );
 };

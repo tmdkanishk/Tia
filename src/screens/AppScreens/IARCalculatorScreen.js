@@ -11,18 +11,26 @@ import { color } from '../../utility/color'
 import { formatIndianCurrency, getRawValue, riskIARCovers } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
 import AddonSelector from '../../components/AddonSelector'
+import QuotationActionFooter from '../../components/QuotationActionFooter'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
+import { useDispatch, useSelector } from 'react-redux'
+import { setAppLoading, showModal } from '../../features/app/appSlice'
+import { exportQuotationPdf, extractQuotationId } from '../../utility/exportQuotationPdf'
 
 
 const IARCalculatorScreen = () => {
+    const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const { accessToken } = useSelector((state) => state.auth);
     const { width } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
     const [riskCover, setRiskCover] = useState(riskIARCovers)
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(null); // null | 'calculate' | 'save'
     const [result, setResult] = useState(null);
     const [viewButton, setViewButton] = useState(true);
     const [selectedAddons, setSelectedAddons] = useState([]);
+    const [savedQuoteId, setSavedQuoteId] = useState(null);
     const [expanded, setExpanded] = useState({
         insuredDetails: true,
         optionalCovers: true,
@@ -185,9 +193,9 @@ const IARCalculatorScreen = () => {
         }));
     }
 
-    const handleIARCalculate = async () => {
+    const handleIARCalculate = async (shouldSave = false) => {
         try {
-            setLoading(true);
+            setLoading(shouldSave ? 'save' : 'calculate');
 
             const updatedForm = {
                 customerDetails: form.customerDetails,
@@ -225,24 +233,69 @@ const IARCalculatorScreen = () => {
                         mlopSI: isRiskCoverSelected('mlop') ? mlopData.mlopSI : '0'
                     }
                 },
-                addons: selectedAddons
+                addons: selectedAddons,
+                save: shouldSave,
             };
 
             console.log("updatedForm", updatedForm);
 
             const response = await calculatIARIndurance(updatedForm);
-            setResult(response.data?.data)
+            const payload = response.data?.data;
+            setResult(payload);
+            setViewButton(true);
             console.log("response", response);
+
+            if (shouldSave) {
+                const id = extractQuotationId(payload) || extractQuotationId(response.data);
+                if (id) setSavedQuoteId(id);
+                dispatch(showModal({
+                    title: 'Success',
+                    message: 'Quotation saved successfully.',
+                }));
+            }
 
         } catch (error) {
             console.log("error?.response?.data?.message", error?.response?.data);
-            Alert.alert(
-                "Error",
-                error?.response?.data?.message || "Something went wrong"
-            );
+            dispatch(showModal({
+                title: 'Failed',
+                message: error?.response?.data?.message || 'Something went wrong',
+            }));
         } finally {
-            setLoading(false);
+            setLoading(null);
         }
+    };
+
+    const handleSavePress = () => {
+        Alert.alert(
+            'Save Quotation',
+            'Do you want to save it?',
+            [
+                { text: 'No', style: 'cancel' },
+                { text: 'Yes', onPress: () => handleIARCalculate(true) },
+            ]
+        );
+    };
+
+    const handleExportPdf = () => {
+        exportQuotationPdf({
+            quoteId: savedQuoteId,
+            accessToken,
+            onStart: () => dispatch(setAppLoading(true)),
+            onEnd: () => dispatch(setAppLoading(false)),
+            onSuccessToast: (payload) => dispatch(showModal(payload)),
+            onErrorToast: (payload) => dispatch(showModal(payload)),
+        });
+    };
+
+    const handleUpdateQuotation = () => {
+        if (!savedQuoteId) {
+            Alert.alert('Save required', 'Please save the quotation before updating.');
+            return;
+        }
+        navigation.navigate('UpdateQuotation', {
+            quoteId: savedQuoteId,
+            quoteType: 'iar',
+        });
     };
 
 
@@ -256,7 +309,7 @@ const IARCalculatorScreen = () => {
                         style={{ flex: 1, backgroundColor: color.screenBackground }}
                     >
                         <View style={globalStyles.innerContainer}>
-                            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
+                            <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: savedQuoteId ? 120 : 60 }}>
                                 <View style={{ gap: 12, paddingHorizontal: 12, marginTop: 12 }}>
                                     {/* customer detail */}
                                     <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
@@ -538,9 +591,28 @@ const IARCalculatorScreen = () => {
                                         onChange={setSelectedAddons}
                                     />
 
-                                    <CustomButton
-                                        disabled={totalSumInsured > 0 ? false : true}
-                                        label='CALCULATE PREMIUM' loading={loading} onPress={handleIARCalculate} />
+                                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                label="Save"
+                                                width="100%"
+                                                backgroundColor={color.disabledToggle}
+                                                textColor={color.mainText}
+                                                loading={loading === 'save'}
+                                                disabled={!totalSumInsured || !!loading}
+                                                onPress={handleSavePress}
+                                            />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                disabled={!totalSumInsured || !!loading}
+                                                label="Calculate"
+                                                width="100%"
+                                                loading={loading === 'calculate'}
+                                                onPress={() => handleIARCalculate(false)}
+                                            />
+                                        </View>
+                                    </View>
 
                                     {result && <ResultCardComponent heading='IAR' value={result?.summary?.grossPremium || 0.00}
                                         children={
@@ -605,6 +677,14 @@ const IARCalculatorScreen = () => {
                     </KeyboardAvoidingView>
                 </View>
             </SafeAreaView>
+
+            {!!savedQuoteId && (
+                <QuotationActionFooter
+                    onExportPdf={handleExportPdf}
+                    onUpdate={handleUpdateQuotation}
+                    accentColor={color.icon}
+                />
+            )}
         </View>
 
     )

@@ -13,8 +13,10 @@ import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
-import { useDispatch } from 'react-redux'
-import { showModal } from '../../features/app/appSlice'
+import QuotationActionFooter from '../../components/QuotationActionFooter'
+import { useDispatch, useSelector } from 'react-redux'
+import { setAppLoading, showModal } from '../../features/app/appSlice'
+import { exportQuotationPdf, extractQuotationId } from '../../utility/exportQuotationPdf'
 
 const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Crore in paise (50,00,00,000)
 
@@ -48,6 +50,7 @@ const riskCoverUiToFormKey = {
 const BusinessCalculatorScreen = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
+    const { accessToken } = useSelector((state) => state.auth);
     const { width, height } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
     const [expanded, setExpanded] = useState({
@@ -75,6 +78,7 @@ const BusinessCalculatorScreen = () => {
     const [result, setResult] = useState(null);
     const [viewButton, setViewButton] = useState(true);
     const [selectedAddons, setSelectedAddons] = useState([]);
+    const [savedQuoteId, setSavedQuoteId] = useState(null);
 
     const [form, setForm] = useState({
         "customerDetails": {
@@ -492,6 +496,8 @@ const BusinessCalculatorScreen = () => {
             setViewButton(true);
 
             if (shouldSave) {
+                const id = extractQuotationId(response.data?.data) || extractQuotationId(response.data);
+                if (id) setSavedQuoteId(id);
                 dispatch(showModal({
                     title: 'Success',
                     message: 'Quotation saved successfully.',
@@ -519,6 +525,28 @@ const BusinessCalculatorScreen = () => {
                 { text: 'Yes', onPress: () => handleCalculate(true) },
             ]
         );
+    };
+
+    const handleExportPdf = () => {
+        exportQuotationPdf({
+            quoteId: savedQuoteId,
+            accessToken,
+            onStart: () => dispatch(setAppLoading(true)),
+            onEnd: () => dispatch(setAppLoading(false)),
+            onSuccessToast: (payload) => dispatch(showModal(payload)),
+            onErrorToast: (payload) => dispatch(showModal(payload)),
+        });
+    };
+
+    const handleUpdateQuotation = () => {
+        if (!savedQuoteId) {
+            Alert.alert('Save required', 'Please save the quotation before updating.');
+            return;
+        }
+        navigation.navigate('UpdateQuotation', {
+            quoteId: savedQuoteId,
+            quoteType: 'business',
+        });
     };
 
     const toggleRiskCover = (key) => {
@@ -568,7 +596,7 @@ const BusinessCalculatorScreen = () => {
                         style={{ flex: 1 }}
                     >
                         <View style={globalStyles.innerContainer}>
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: savedQuoteId ? 120 : 60 }}>
 
                                 <View style={{ gap: 12, paddingHorizontal: 12, marginTop: 12 }}>
                                     <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
@@ -1126,6 +1154,14 @@ const BusinessCalculatorScreen = () => {
                     </KeyboardAvoidingView>
                 </View>
             </SafeAreaView>
+
+            {!!savedQuoteId && (
+                <QuotationActionFooter
+                    onExportPdf={handleExportPdf}
+                    onUpdate={handleUpdateQuotation}
+                    accentColor={color.primaryBlue}
+                />
+            )}
         </View>
     )
 }
