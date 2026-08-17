@@ -60,22 +60,31 @@ const QuotationsComponent = () => {
             });
             console.log("response", response);
             // GET /api/quotations → { success, data: [...], pagination }
+            // List row: id, type, quotationNumber, policyType, clientName, brokerName,
+            // riskCode, occupancy, status, grossPremium, sumInsured, createdAt
             const rawData = Array.isArray(response?.data?.data)
                 ? response.data.data
                 : Array.isArray(response?.data)
                     ? response.data
                     : [];
             const tabType = normalizeQuoteType(tab);
-            // Map list summary fields to what the UI expects
-            const data = rawData.map((item) => ({
-                ...item,
-                type: item?.type || item?.quoteType || tabType || null,
-                quotationNo: item?.quotationNo || item?.quotationNumber || null,
-                clientName: item?.clientName || item?.customerName || '-',
-                sumInsured: item?.sumInsured ?? 0,
-                grossPremium: item?.grossPremium ?? 0,
-                createdAt: item?.createdAt || item?.created_at || null,
-            }));
+            const data = rawData.map((item) => {
+                const quotationNumber = item?.quotationNumber || item?.quotationNo || null;
+                return {
+                    ...item,
+                    type: item?.type || item?.quoteType || tabType || null,
+                    quotationNumber,
+                    quotationNo: quotationNumber,
+                    clientName: item?.clientName || item?.customerName || null,
+                    policyType: item?.policyType || null,
+                    brokerName: item?.brokerName || null,
+                    riskCode: item?.riskCode ?? null,
+                    occupancy: item?.occupancy || null,
+                    sumInsured: item?.sumInsured ?? 0,
+                    grossPremium: item?.grossPremium ?? 0,
+                    createdAt: item?.createdAt || item?.created_at || null,
+                };
+            });
             const pagination = response?.data?.pagination;
             const hasMorePages = typeof pagination?.hasMore === 'boolean'
                 ? pagination.hasMore
@@ -149,7 +158,7 @@ const QuotationsComponent = () => {
     const handleDelete = (item, quoteType) => {
         Alert.alert(
             'Delete Quotation',
-            `Delete ${item?.quotationNo || 'this quotation'}?`,
+            `Delete ${item?.quotationNumber || item?.quotationNo || 'this quotation'}?`,
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -200,11 +209,17 @@ const QuotationsComponent = () => {
                             }
                         </View>
                         <View style={{ gap: 5, width: '80%' }}>
-                            <Text style={textStyles.subtitle}>{item?.clientName || '-'}</Text>
-                            <Text style={[textStyles.bodySmall, { fontSize: 13 }]}>{item?.quotationNo || item?.quotationNumber || '-'}</Text>
+                            <Text style={textStyles.subtitle} numberOfLines={1}>
+                                {item?.clientName || '-'}
+                            </Text>
+                            <Text style={[textStyles.bodySmall, { fontSize: 13 }]} numberOfLines={1}>
+                                {item?.quotationNumber || item?.quotationNo || '-'}
+                            </Text>
 
-                            {!!item?.companyName && (
-                                <Text style={[textStyles.caption, { color: color.secondaryText }]}>{item?.companyName}</Text>
+                            {!!item?.policyType && (
+                                <Text style={[textStyles.caption, { color: color.secondaryText }]} numberOfLines={1}>
+                                    {item.policyType}
+                                </Text>
                             )}
 
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>

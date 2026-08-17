@@ -43,7 +43,7 @@ const FireCalculatorScreen = () => {
 
   const [form, setForm] = useState({
     "customerDetails": {
-      "customerName": "",
+      "clientName": "",
       "address": "",
       "pinCode": "",
       "riskCode": "",
@@ -86,7 +86,7 @@ const FireCalculatorScreen = () => {
 
     setForm({
       customerDetails: {
-        customerName: customer.clientName || '',
+        clientName: customer.clientName || customer.customerName || '',
         address: risk.location || risk.riskLocation || '',
         pinCode: toInputValue(risk.pinCode),
         riskCode: toInputValue(risk.riskCode),
@@ -287,7 +287,7 @@ const FireCalculatorScreen = () => {
                     </TouchableOpacity>
 
                     <View style={{ display: expanded.insuredDetails ? 'flex' : 'none', marginTop: 10 }}>
-                      <InputField value={form.customerDetails?.customerName} onChangeText={(text) => handleChange("customerDetails", "customerName", text)} placeholder='Customer Name' label={'Customer Name'} containerInputStyle={{ paddingVertical: 6 }} />
+                      <InputField value={form.customerDetails?.clientName} onChangeText={(text) => handleChange("customerDetails", "clientName", text)} placeholder='Client Name' label={'Client Name'} containerInputStyle={{ paddingVertical: 6 }} />
                       <InputField value={form.customerDetails?.address} onChangeText={(text) => handleChange("customerDetails", "address", text)} placeholder='Address' label={'Address'} containerInputStyle={{ paddingVertical: 6 }} />
                       <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
 

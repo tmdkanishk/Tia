@@ -42,7 +42,7 @@ const QuotationSkeleton = () => {
                             flex: 1,
                         }}
                     >
-                        {/* Customer Name */}
+                        {/* Client Name */}
                         <View
                             style={{
                                 width: '70%',

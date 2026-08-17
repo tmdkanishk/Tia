@@ -121,8 +121,13 @@ export const normalizeQuotationDetail = (data = {}) => {
     ...(fromJson.customer || {}),
     ...(root.customer || {}),
   };
-  if (!customer.clientName && (root.clientName || root.riskDetails?.clientName)) {
-    customer.clientName = root.clientName || root.riskDetails?.clientName;
+  if (!customer.clientName) {
+    customer.clientName =
+      root.clientName
+      || root.riskDetails?.clientName
+      || customer.customerName
+      || root.customerName
+      || null;
   }
   if (!customer.brokerName && root.brokerName) customer.brokerName = root.brokerName;
   const imdValue = customer.imdName || customer.imd || root.imdName || root.imd;

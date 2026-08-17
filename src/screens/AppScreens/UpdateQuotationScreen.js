@@ -63,6 +63,7 @@ const toYesNoEnum = (value) => {
 };
 
 const emptyForm = {
+  clientName: '',
   brokerName: '',
   imdName: '',
   caseType: '',
@@ -117,6 +118,13 @@ const buildInitialForm = (data = {}) => {
   const policy = root.policy || {};
 
   return {
+    clientName: toText(
+      root.clientName
+      ?? customer.clientName
+      ?? customer.customerName
+      ?? risk.clientName
+      ?? root.customerName
+    ),
     brokerName: toText(root.brokerName ?? customer.brokerName ?? risk.brokerName),
     imdName: toText(root.imdName ?? customer.imdName ?? customer.imd ?? risk.imdName ?? root.imd),
     caseType: toCaseType(root.caseType ?? policy.caseType),
@@ -307,6 +315,7 @@ const UpdateQuotationScreen = () => {
 
     // Exact PUT body shape expected by quotations update API
     return {
+      clientName: form.clientName.trim(),
       imdName: form.imdName.trim(),
       brokerName: form.brokerName.trim(),
       caseType: form.caseType.trim(),
@@ -384,6 +393,13 @@ const UpdateQuotationScreen = () => {
           >
             <View style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>Broker Details</Text>
+              <InputField
+                label="Client Name"
+                value={form.clientName}
+                onChangeText={(text) => setField('clientName', text)}
+                placeholder="Client name"
+                containerInputStyle={styles.inputPad}
+              />
               <InputField
                 label="Broker Name"
                 value={form.brokerName}

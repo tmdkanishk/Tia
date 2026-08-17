@@ -90,7 +90,7 @@ const IARCalculatorScreen = () => {
     const [form, setForm] = useState(
         {
             "customerDetails": {
-                "customerName": null,
+                "clientName": null,
                 "address": null,
                 "pinCode": null,
                 "riskCode": null,
@@ -327,7 +327,7 @@ const IARCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.insuredDetails ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.customerDetails?.customerName} onChangeText={(text) => handleChange("customerDetails", "customerName", text)} placeholder='Customer Name' label={'Customer Name'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.customerDetails?.clientName} onChangeText={(text) => handleChange("customerDetails", "clientName", text)} placeholder='Client Name' label={'Client Name'} containerInputStyle={{ paddingVertical: 6 }} />
                                             <InputField value={form.customerDetails?.address} onChangeText={(text) => handleChange("customerDetails", "address", text)} placeholder='Address' label={'Address'} containerInputStyle={{ paddingVertical: 6 }} />
                                             <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
 

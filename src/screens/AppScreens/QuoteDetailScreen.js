@@ -299,7 +299,7 @@ const QuoteDetailScreen = ({ route }) => {
                 'Quotation Date',
                 model.quotation?.quotationDate ? formattedDate(model.quotation.quotationDate) : null
             )}
-            {renderInfoRow('Customer Name', model.customer?.clientName)}
+            {renderInfoRow('Client Name', model.customer?.clientName || model.customer?.customerName)}
             {renderInfoRow('Broker', model.customer?.brokerName)}
             {renderInfoRow('IMD', model.customer?.imdName || model.customer?.imd)}
             {renderInfoRow('Risk Location', model.risk?.location || model.risk?.riskLocation)}
