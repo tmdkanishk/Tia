@@ -13,6 +13,10 @@ import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
+import QuotationActionFooter from '../../components/QuotationActionFooter'
+import { useDispatch, useSelector } from 'react-redux'
+import { setAppLoading, showModal } from '../../features/app/appSlice'
+import { exportQuotationPdf, extractQuotationId } from '../../utility/exportQuotationPdf'
 
 const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Crore in paise (50,00,00,000)
 
@@ -45,6 +49,8 @@ const riskCoverUiToFormKey = {
 
 const BusinessCalculatorScreen = () => {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const { accessToken } = useSelector((state) => state.auth);
     const { width, height } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
     const [expanded, setExpanded] = useState({
@@ -68,14 +74,15 @@ const BusinessCalculatorScreen = () => {
     });
 
     const [riskCover, setRiskCover] = useState(riskCovers)
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(null); // null | 'calculate' | 'save'
     const [result, setResult] = useState(null);
     const [viewButton, setViewButton] = useState(true);
     const [selectedAddons, setSelectedAddons] = useState([]);
+    const [savedQuoteId, setSavedQuoteId] = useState(null);
 
     const [form, setForm] = useState({
         "customerDetails": {
-            "customerName": null,
+            "clientName": null,
             "address": null,
             "pinCode": null,
             "riskCode": null,
@@ -451,9 +458,9 @@ const BusinessCalculatorScreen = () => {
         handleChange("customerDetails", "occupancy", data?.occupancy_desc);
     }
 
-    const handleCalculate = async () => {
+    const handleCalculate = async (shouldSave = false) => {
         try {
-            setLoading(true);
+            setLoading(shouldSave ? 'save' : 'calculate');
             let updatedForm = getUpdatedRiskCovers(form);
 
             let terrorism = riskCover.find(c => c.key == 'terrorism').selected;
@@ -468,6 +475,7 @@ const BusinessCalculatorScreen = () => {
                 addons: toNumber(updatedForm.sumInsured?.totalSI) >= BUSINESS_ADDON_THRESHOLD
                     ? selectedAddons
                     : [],
+                save: shouldSave,
             });
             console.log("updatedForm", payload);
             // update state
@@ -476,10 +484,10 @@ const BusinessCalculatorScreen = () => {
             console.log("response", response);
 
             if (response?.data?.success === false) {
-                Alert.alert(
-                    "Error",
-                    response?.data?.message || "Something went wrong"
-                );
+                dispatch(showModal({
+                    title: 'Failed',
+                    message: response?.data?.message || 'Something went wrong',
+                }));
                 setResult(null);
                 return;
             }
@@ -487,17 +495,59 @@ const BusinessCalculatorScreen = () => {
             setResult(response.data?.data);
             setViewButton(true);
 
+            if (shouldSave) {
+                const id = extractQuotationId(response.data?.data) || extractQuotationId(response.data);
+                if (id) setSavedQuoteId(id);
+                dispatch(showModal({
+                    title: 'Success',
+                    message: 'Quotation saved successfully.',
+                }));
+            }
+
         } catch (error) {
             console.log("error", error?.response?.data);
-            Alert.alert(
-                "Error",
-                error?.response?.data?.message || "Something went wrong"
-            );
+            dispatch(showModal({
+                title: 'Failed',
+                message: error?.response?.data?.message || 'Something went wrong',
+            }));
             setResult(null);
         } finally {
-            setLoading(false);
+            setLoading(null);
         }
     }
+
+    const handleSavePress = () => {
+        Alert.alert(
+            'Save Quotation',
+            'Do you want to save it?',
+            [
+                { text: 'No', style: 'cancel' },
+                { text: 'Yes', onPress: () => handleCalculate(true) },
+            ]
+        );
+    };
+
+    const handleExportPdf = () => {
+        exportQuotationPdf({
+            quoteId: savedQuoteId,
+            accessToken,
+            onStart: () => dispatch(setAppLoading(true)),
+            onEnd: () => dispatch(setAppLoading(false)),
+            onSuccessToast: (payload) => dispatch(showModal(payload)),
+            onErrorToast: (payload) => dispatch(showModal(payload)),
+        });
+    };
+
+    const handleUpdateQuotation = () => {
+        if (!savedQuoteId) {
+            Alert.alert('Save required', 'Please save the quotation before updating.');
+            return;
+        }
+        navigation.navigate('UpdateQuotation', {
+            quoteId: savedQuoteId,
+            quoteType: 'business',
+        });
+    };
 
     const toggleRiskCover = (key) => {
         const current = riskCover.find((item) => item.key === key)?.selected;
@@ -546,7 +596,7 @@ const BusinessCalculatorScreen = () => {
                         style={{ flex: 1 }}
                     >
                         <View style={globalStyles.innerContainer}>
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, }}>
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: savedQuoteId ? 120 : 60 }}>
 
                                 <View style={{ gap: 12, paddingHorizontal: 12, marginTop: 12 }}>
                                     <View style={{ borderWidth: 1, borderColor: color.borderColor, padding: 10, borderRadius: 10 }}>
@@ -565,7 +615,7 @@ const BusinessCalculatorScreen = () => {
                                         </TouchableOpacity>
 
                                         <View style={{ display: expanded.insuredDetails ? 'flex' : 'none', marginTop: 10 }}>
-                                            <InputField value={form.customerDetails?.customerName} onChangeText={(text) => handleChange("customerDetails", "customerName", text)} placeholder='Customer Name' label={'Customer Name'} containerInputStyle={{ paddingVertical: 6 }} />
+                                            <InputField value={form.customerDetails?.clientName} onChangeText={(text) => handleChange("customerDetails", "clientName", text)} placeholder='Client Name' label={'Client Name'} containerInputStyle={{ paddingVertical: 6 }} />
                                             <InputField value={form.customerDetails?.address} onChangeText={(text) => handleChange("customerDetails", "address", text)} placeholder='Address' label={'Address'} containerInputStyle={{ paddingVertical: 6 }} />
                                             <InputField value={form.customerDetails?.pinCode} onChangeText={(text) => handleChange("customerDetails", "pinCode", text)} keyboardType='numeric' placeholder='eg.141001' label={'Pin Code'} containerInputStyle={{ paddingVertical: 6 }} />
 
@@ -999,7 +1049,28 @@ const BusinessCalculatorScreen = () => {
                                         />
                                     )}
 
-                                    <CustomButton label='CALCULATE PREMIUM' loading={loading} onPress={handleCalculate} />
+                                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                label="Save"
+                                                width="100%"
+                                                backgroundColor={color.disabledToggle}
+                                                textColor={color.mainText}
+                                                loading={loading === 'save'}
+                                                disabled={!!loading}
+                                                onPress={handleSavePress}
+                                            />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <CustomButton
+                                                label="Calculate"
+                                                width="100%"
+                                                loading={loading === 'calculate'}
+                                                disabled={!!loading}
+                                                onPress={() => handleCalculate(false)}
+                                            />
+                                        </View>
+                                    </View>
 
                                     {result && <ResultCardComponent heading='Business' value={result?.premiumSummary?.grossPremium || 0.00}
                                         children={
@@ -1083,6 +1154,14 @@ const BusinessCalculatorScreen = () => {
                     </KeyboardAvoidingView>
                 </View>
             </SafeAreaView>
+
+            {!!savedQuoteId && (
+                <QuotationActionFooter
+                    onExportPdf={handleExportPdf}
+                    onUpdate={handleUpdateQuotation}
+                    accentColor={color.primaryBlue}
+                />
+            )}
         </View>
     )
 }

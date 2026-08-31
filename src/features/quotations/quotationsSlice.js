@@ -43,6 +43,17 @@ const quotationsSlice = createSlice({
             }
         },
 
+        removeQuotation: (state, action) => {
+            const { id, type } = action.payload || {};
+            state.quotations = state.quotations.filter((item) => {
+                const sameId = String(item?.id) === String(id);
+                if (!sameId) return true;
+                if (!type) return false;
+                const itemType = String(item?.type || item?.quoteType || '').toLowerCase();
+                return itemType !== String(type).toLowerCase();
+            });
+        },
+
         resetQuotationList: (state) => {
             state.quotations = [];
             state.page = 1;
@@ -58,6 +69,7 @@ export const {
     setTab,
     setPage,
     setQuotationData,
+    removeQuotation,
     resetQuotationList,
 } = quotationsSlice.actions;
 

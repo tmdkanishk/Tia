@@ -1,14 +1,7 @@
 import { StatusBar } from 'react-native'
 import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import MainLayout from '../screens/Layout/MainLayout';
-import BusinessCalculatorScreen from '../screens/AppScreens/BusinessCalculatorScreen';
-import IARCalculatorScreen from '../screens/AppScreens/IARCalculatorScreen';
-import FireCalculatorScreen from '../screens/AppScreens/FireCalculatorScreen'
-import AddonScreen from '../screens/AppScreens/AddonScreen'
-import QuoteDetailScreen from '../screens/AppScreens/QuoteDetailScreen'
-
-
+import MainLayout from '../screens/Layout/MainLayout'
 
 const Stack = createNativeStackNavigator();
 
@@ -17,17 +10,39 @@ const MainStack = () => {
         <>
             <StatusBar backgroundColor={'#FFFFFF'} barStyle="dark-content" />
             <Stack.Navigator
-                screenOptions={{ headerShown: false }}
+                screenOptions={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    freezeOnBlur: true,
+                }}
                 initialRouteName='MainLayout'
             >
                 <Stack.Screen name="MainLayout" component={MainLayout} />
-                <Stack.Screen name="BusinessCalculator" component={BusinessCalculatorScreen} />
-                <Stack.Screen name="IARCalculator" component={IARCalculatorScreen} />
-                <Stack.Screen name="FireCalculator" component={FireCalculatorScreen} />
-                <Stack.Screen name="Addon" component={AddonScreen} />
-                <Stack.Screen name="QuoteDetail" component={QuoteDetailScreen} />
-
-
+                {/* Lazy-load heavy calculator/detail screens so first paint of MainLayout stays fast */}
+                <Stack.Screen
+                    name="BusinessCalculator"
+                    getComponent={() => require('../screens/AppScreens/BusinessCalculatorScreen').default}
+                />
+                <Stack.Screen
+                    name="IARCalculator"
+                    getComponent={() => require('../screens/AppScreens/IARCalculatorScreen').default}
+                />
+                <Stack.Screen
+                    name="FireCalculator"
+                    getComponent={() => require('../screens/AppScreens/FireCalculatorScreen').default}
+                />
+                <Stack.Screen
+                    name="Addon"
+                    getComponent={() => require('../screens/AppScreens/AddonScreen').default}
+                />
+                <Stack.Screen
+                    name="QuoteDetail"
+                    getComponent={() => require('../screens/AppScreens/QuoteDetailScreen').default}
+                />
+                <Stack.Screen
+                    name="UpdateQuotation"
+                    getComponent={() => require('../screens/AppScreens/UpdateQuotationScreen').default}
+                />
             </Stack.Navigator>
         </>
     )

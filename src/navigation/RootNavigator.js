@@ -21,14 +21,14 @@ const RootContent = () => {
 
   const isLogin = isVerified && isAuthenticated;
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <NavigationContainer>
         {/* Show MainStack only when user is authenticated AND verified */}
         {isLogin ? <MainStack /> : <AuthStack />}
       </NavigationContainer>
       <AppLoader />
       <CustomModal />
-    </>
+    </View>
   );
 };
 
