@@ -13,6 +13,17 @@ const HomeComponent = () => {
 
   const user = useSelector(selectUser);
   const hour = new Date().getHours();
+  const cardStyle = {
+    padding: 10,
+    minHeight: 118,
+    borderWidth: 2,
+    borderRadius: 10,
+    borderLeftWidth: 5,
+    borderColor: color.borderColor,
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  };
 
   return (
     <View style={{ gap: 10 }}>
@@ -22,7 +33,7 @@ const HomeComponent = () => {
       </View>
 
       {/* Fire Calculator */}
-      <TouchableOpacity onPress={() => navigation.navigate('FireCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.fire, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+      <TouchableOpacity onPress={() => navigation.navigate('FireCalculator')} style={{ ...cardStyle, borderLeftColor: color.fire }}>
         <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightFire, alignItems: 'center', justifyContent: 'center' }}>
           <IconComponent icon={icons.fire} size={46} tintColor={color.fire} />
         </View>
@@ -30,10 +41,6 @@ const HomeComponent = () => {
         <View style={{ width: width * 0.6, gap: 10 }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Fire Calculator</Text>
           <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Fire Insurance policies.</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <IconComponent icon={icons.docs} size={16} tintColor={color.fire} />
-            <Text style={{ fontSize: 14, color: color.secondaryText }}>120 Quotes Generated</Text>
-          </View>
         </View>
 
         <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />
@@ -42,7 +49,7 @@ const HomeComponent = () => {
 
 
       {/* Business Calculator */}
-      <TouchableOpacity onPress={() => navigation.navigate('BusinessCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.primaryBlue, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+      <TouchableOpacity onPress={() => navigation.navigate('BusinessCalculator')} style={{ ...cardStyle, borderLeftColor: color.primaryBlue }}>
         <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
           <IconComponent icon={icons.businessins} size={46} tintColor={color.primaryBlue} />
         </View>
@@ -50,10 +57,6 @@ const HomeComponent = () => {
         <View style={{ width: width * 0.6, gap: 10 }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>Business Calculator</Text>
           <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Business Insurance policies.</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <IconComponent icon={icons.docs} size={16} tintColor={color.primaryBlue} />
-            <Text style={{ fontSize: 14, color: color.secondaryText }}>248 Quotes Generated</Text>
-          </View>
         </View>
 
         <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />
@@ -61,7 +64,7 @@ const HomeComponent = () => {
       </TouchableOpacity>
 
       {/* IAR Calculator */}
-      <TouchableOpacity onPress={() => navigation.navigate('IARCalculator')} style={{ padding: 10, borderWidth: 2, borderRadius: 10, borderLeftWidth: 5, borderColor: color.borderColor, borderLeftColor: color.mainText, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+      <TouchableOpacity onPress={() => navigation.navigate('IARCalculator')} style={{ ...cardStyle, borderLeftColor: color.mainText }}>
         <View style={{ width: width * 0.150, height: width * 0.150, borderRadius: 8, backgroundColor: color.lightBlueBackground, alignItems: 'center', justifyContent: 'center' }}>
           <IconComponent icon={icons.industry} size={46} tintColor={color.mainText} />
         </View>
@@ -69,10 +72,6 @@ const HomeComponent = () => {
         <View style={{ width: width * 0.6, gap: 10 }}>
           <Text style={{ fontSize: 18, fontWeight: '600', color: color.mainText }}>IAR Calculator</Text>
           <Text style={{ fontSize: 14, color: color.secondaryText }}>Calculate premium for Industrial All Risk policies.</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <IconComponent icon={icons.docs} size={16} tintColor={color.mainText} />
-            <Text style={{ fontSize: 14, color: color.secondaryText }}>98 Quotes Generated</Text>
-          </View>
         </View>
 
         <IconComponent icon={icons.rightarrow} size={16} tintColor={color.icon} />

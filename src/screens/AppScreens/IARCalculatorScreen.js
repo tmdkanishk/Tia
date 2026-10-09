@@ -1,12 +1,12 @@
 import { View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet, KeyboardAvoidingView, Image, Dimensions, Alert } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { IconComponent, icons } from '../../components/IconComponent'
 import InputField from '../../components/InputField'
 import CustomAutoSearchModal from '../../components/CustomAutoSearchModal'
 import { calculatIARIndurance } from '../../features/iarInsurance/iARInsuranceAPI'
 import ResultCardComponent from '../../components/ResultCardComponent'
 import { globalStyles } from '../../utility/globalStyles'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { color } from '../../utility/color'
 import { formatIndianCurrency, getRawValue, riskIARCovers } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
@@ -17,11 +17,14 @@ import BackHeader from '../../components/BackHeader'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAppLoading, showModal } from '../../features/app/appSlice'
 import { exportQuotationPdf, extractQuotationId } from '../../utility/exportQuotationPdf'
+import { buildIarClonePrefill } from '../../features/quotations/cloneQuotationPrefill'
 
 
 const IARCalculatorScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const dispatch = useDispatch();
+    const isCloneMode = route.params?.mode === 'clone' && !!route.params?.quotationData;
     const { accessToken } = useSelector((state) => state.auth);
     const { width } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
@@ -111,6 +114,43 @@ const IARCalculatorScreen = () => {
 
         }
     );
+
+    useEffect(() => {
+        if (!isCloneMode) return;
+        const prefill = buildIarClonePrefill(route.params.quotationData);
+        setForm({
+            customerDetails: prefill.customerDetails,
+            optionalCovers: {
+                terrorism: prefill.terrorism,
+                mlop: prefill.mlop,
+            },
+            discounts: prefill.discounts,
+        });
+        setSumInsuredData(prefill.sumInsured);
+        setTotalSumInsured(prefill.totalSumInsured);
+        setFireAllied((prev) => ({ ...prev, ...prefill.fireAllied }));
+        setBusinessInterruptionData((prev) => ({
+            ...prev,
+            businessInterruptionSI: prefill.businessInterruptionSI,
+            terrorismSI: prefill.terrorismSI,
+        }));
+        setMachineryData((prev) => ({
+            ...prev,
+            machineryBreakdownSI: prefill.machineryBreakdownSI,
+        }));
+        setMlopData((prev) => ({
+            ...prev,
+            mlopSI: prefill.mlopSI,
+        }));
+        setRiskCover((prev) =>
+            prev.map((item) => {
+                if (item.key === 'terrorism') return { ...item, selected: prefill.terrorism };
+                if (item.key === 'mlop') return { ...item, selected: prefill.mlop };
+                return item;
+            })
+        );
+        setSelectedAddons(prefill.addons || []);
+    }, [isCloneMode, route.params?.quotationData]);
 
     const handleChange = (section, field, value) => {
         setForm(prev => ({
@@ -303,7 +343,12 @@ const IARCalculatorScreen = () => {
         <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
             <SafeAreaView>
                 <View style={globalStyles.newContainer}>
-                    <BackHeader title={'IAR Calculator'} subTitle={'Calculate premium for Industrial All Risk policies.'} />
+                    <BackHeader
+                        title={isCloneMode ? 'New IAR Quotation' : 'IAR Calculator'}
+                        subTitle={isCloneMode
+                            ? 'Copied from an existing quotation. Change what you need, then save a new one.'
+                            : 'Calculate premium for Industrial All Risk policies.'}
+                    />
                     <KeyboardAvoidingView
                         behavior='padding'
                         style={{ flex: 1, backgroundColor: color.screenBackground }}

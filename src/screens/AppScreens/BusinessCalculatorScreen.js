@@ -9,7 +9,7 @@ import { color } from '../../utility/color'
 import { globalStyles } from '../../utility/globalStyles'
 import { riskCovers, formatUSCurrency, getRawValue, toNumber } from '../../utility/helper'
 import CustomButton from '../../components/CustomButton'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
@@ -17,6 +17,7 @@ import QuotationActionFooter from '../../components/QuotationActionFooter'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAppLoading, showModal } from '../../features/app/appSlice'
 import { exportQuotationPdf, extractQuotationId } from '../../utility/exportQuotationPdf'
+import { buildBusinessClonePrefill } from '../../features/quotations/cloneQuotationPrefill'
 
 const BUSINESS_ADDON_THRESHOLD = 5000000000; // 50 Crore in paise (50,00,00,000)
 
@@ -49,7 +50,9 @@ const riskCoverUiToFormKey = {
 
 const BusinessCalculatorScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const dispatch = useDispatch();
+    const isCloneMode = route.params?.mode === 'clone' && !!route.params?.quotationData;
     const { accessToken } = useSelector((state) => state.auth);
     const { width, height } = Dimensions.get('window');
     const [modalVisible, setModalVisible] = useState(false);
@@ -219,6 +222,36 @@ const BusinessCalculatorScreen = () => {
             }
         }
     });
+
+    useEffect(() => {
+        if (!isCloneMode) return;
+        const prefill = buildBusinessClonePrefill(route.params.quotationData);
+        setForm((prev) => ({
+            ...prev,
+            customerDetails: { ...prev.customerDetails, ...prefill.customerDetails },
+            riskCovers: { ...prev.riskCovers, ...prefill.riskCovers },
+            discounts: {
+                ...prev.discounts,
+                iibDiscountPercent: prefill.discounts.iibDiscountPercent ?? prefill.discounts.iib ?? prev.discounts.iibDiscountPercent,
+                eqDiscountPercent: prefill.discounts.eqDiscountPercent ?? prefill.discounts.earthquake ?? prev.discounts.eqDiscountPercent,
+                stfiDiscountPercent: prefill.discounts.stfiDiscountPercent ?? prefill.discounts.stfi ?? prev.discounts.stfiDiscountPercent,
+            },
+            sumInsured: { ...prev.sumInsured, ...prefill.sumInsured },
+            customRates: { ...prev.customRates, ...prefill.customRates },
+            sections: Object.keys(prev.sections).reduce((acc, key) => {
+                acc[key] = { ...prev.sections[key], ...(prefill.sections?.[key] || {}) };
+                return acc;
+            }, {}),
+        }));
+        setRiskCover((prev) =>
+            prev.map((item) => {
+                const formKey = riskCoverUiToFormKey[item.key];
+                if (!formKey || prefill.riskCovers?.[formKey] === undefined) return item;
+                return { ...item, selected: !!prefill.riskCovers[formKey] };
+            })
+        );
+        setSelectedAddons(prefill.addons || []);
+    }, [isCloneMode, route.params?.quotationData]);
 
 
     const getUpdatedRiskCovers = (data, coversUi = riskCover) => {
@@ -590,7 +623,12 @@ const BusinessCalculatorScreen = () => {
         <View style={{ flex: 1, backgroundColor: color.screenBackground }}>
             <SafeAreaView>
                 <View style={globalStyles.newContainer}>
-                    <BackHeader title={'Business Calculator'} subTitle={'Calculate premium for Business Insurance policies.'} />
+                    <BackHeader
+                        title={isCloneMode ? 'New Business Quotation' : 'Business Calculator'}
+                        subTitle={isCloneMode
+                            ? 'Copied from an existing quotation. Change what you need, then save a new one.'
+                            : 'Calculate premium for Business Insurance policies.'}
+                    />
                     <KeyboardAvoidingView
                         behavior='padding'
                         style={{ flex: 1 }}

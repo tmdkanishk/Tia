@@ -22,7 +22,7 @@ const BottomTabBar = ({ onButtonClick, active }) => (
           style={[styles.tabItem, isActive && styles.activeTab]}
           onPress={() => onButtonClick(tab.screen)}
           activeOpacity={0.7}
-          disabled={tab.id == 'Home' || tab.id == 'Quotations' ? false : true}
+          disabled={tab.id === 'Support'}
         >
           {/* {isActive && <View style={styles.activeIndicator} />} */}
           <IconComponent icon={tab.icon} size={24} tintColor={isActive ? color.primaryBlueDark : color.secondaryText} />

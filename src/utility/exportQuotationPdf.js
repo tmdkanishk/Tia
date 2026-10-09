@@ -1,7 +1,7 @@
 import { Alert, Linking, Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { BASE_URL } from '../config/env';
-import { getQuotationPdfExportPath } from '../features/quotations/quotationsAPI';
+import { getQuotationExcelExportPath, getQuotationPdfExportPath } from '../features/quotations/quotationsAPI';
 import { checkPermission } from './permissions';
 
 /** Pull quotation id from calculate/save API response payloads */
@@ -56,7 +56,11 @@ const formatOpenError = (error) => {
   return String(error);
 };
 
-const openWithChooser = async (preferredPath, fallbackPath) => {
+const openWithChooser = async (preferredPath, fallbackPath, {
+  mimeTypes = ['application/pdf', 'application/x-pdf', 'application/octet-stream'],
+  chooserTitle = 'Open PDF with',
+  fileLabel = 'PDF',
+} = {}) => {
   const path = await resolveOpenPath(preferredPath, fallbackPath);
   if (!path) {
     Alert.alert('Unable to open', 'Downloaded file path is missing.');
@@ -67,19 +71,17 @@ const openWithChooser = async (preferredPath, fallbackPath) => {
     const exists = await ReactNativeBlobUtil.fs.exists(path);
     if (!exists) {
       Alert.alert(
-        'Unable to open PDF',
+        `Unable to open ${fileLabel}`,
         'The downloaded file could not be found. Try opening it from Downloads using File location.',
       );
       return;
     }
   }
 
-  const androidMimeTypes = ['application/pdf', 'application/x-pdf', 'application/octet-stream'];
-
   try {
     if (Platform.OS === 'android') {
       // 1) First, try opening the default handler (no chooser).
-      for (const mime of androidMimeTypes) {
+      for (const mime of mimeTypes) {
         try {
           // actionViewIntent(path, mime) will NOT create a chooser if chooserTitle is omitted.
           await ReactNativeBlobUtil.android.actionViewIntent(path, mime);
@@ -91,11 +93,11 @@ const openWithChooser = async (preferredPath, fallbackPath) => {
 
       // 2) If none worked, show chooser using the more common PDF MIME types.
       //    This is where "WhatsApp-like" auto resolution usually happens when a viewer exists.
-      const lastMime = androidMimeTypes[androidMimeTypes.length - 1];
+      const lastMime = mimeTypes[mimeTypes.length - 1];
       await ReactNativeBlobUtil.android.actionViewIntent(
         path,
         lastMime,
-        'Open PDF with',
+        chooserTitle,
       );
     } else {
       await ReactNativeBlobUtil.ios.presentOpenInMenu(path);
@@ -103,7 +105,7 @@ const openWithChooser = async (preferredPath, fallbackPath) => {
   } catch (error) {
     console.log('open pdf chooser error', error);
     Alert.alert(
-      'Unable to open PDF',
+      `Unable to open ${fileLabel}`,
       `No app found (or unable to resolve viewer).\n${formatOpenError(error)}`,
     );
   }
@@ -139,23 +141,26 @@ const openFileLocation = async (dirPath) => {
   }
 };
 
-/**
- * Download quotation PDF, then let the user open it with an app or go to the file location.
- * @param {{ quoteId: string|number, accessToken: string, onStart?: Function, onEnd?: Function, onSuccessToast?: Function, onErrorToast?: Function }} options
- */
-export const exportQuotationPdf = async ({
+const EXCEL_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+const downloadQuotationFile = async ({
   quoteId,
   accessToken,
+  relativePath,
+  extension,
+  mime,
+  label,
+  mimeTypes,
+  chooserTitle,
   onStart,
   onEnd,
   onErrorToast,
-} = {}) => {
+}) => {
   if (!quoteId) {
-    Alert.alert('Unavailable', 'Save the quotation first to export a PDF.');
+    Alert.alert('Unavailable', `Save the quotation first to export a ${label}.`);
     return;
   }
 
-  const relativePath = getQuotationPdfExportPath(quoteId);
   if (!relativePath) {
     Alert.alert('Unavailable', 'Export file is not available for this quotation.');
     return;
@@ -172,7 +177,7 @@ export const exportQuotationPdf = async ({
 
     const fileUrl = relativePath.startsWith('http') ? relativePath : `${BASE_URL}${relativePath}`;
     const { config, fs } = ReactNativeBlobUtil;
-    const fileName = `quotation_${quoteId}_${Date.now()}.pdf`;
+    const fileName = `quotation_${quoteId}_${Date.now()}.${extension}`;
     const usePublicDownloads = Platform.OS === 'android' && Platform.Version >= 29;
     const downloadDir = Platform.OS === 'ios'
       ? fs.dirs.DocumentDir
@@ -188,19 +193,19 @@ export const exportQuotationPdf = async ({
             ? {
                 useDownloadManager: true,
                 notification: true,
-                description: 'Downloading quotation PDF',
+                description: `Downloading quotation ${label}`,
                 mediaScannable: true,
-                mime: 'application/pdf',
+                mime,
                 title: fileName,
                 storeInDownloads: true,
               }
             : {
                 useDownloadManager: true,
                 notification: true,
-                description: 'Downloading quotation PDF',
+                description: `Downloading quotation ${label}`,
                 mediaScannable: true,
                 path: filePath,
-                mime: 'application/pdf',
+                mime,
                 title: fileName,
               },
         };
@@ -215,16 +220,19 @@ export const exportQuotationPdf = async ({
     Alert.alert(
       'Download complete',
       Platform.OS === 'android'
-        ? 'Quotation PDF saved to Downloads.'
-        : 'Quotation PDF saved successfully.',
+        ? `Quotation ${label} saved to Downloads.`
+        : `Quotation ${label} saved successfully.`,
       [
         { text: 'Close', style: 'cancel' },
         { text: 'File location', onPress: () => openFileLocation(downloadDir) },
-        { text: 'Open with…', onPress: () => openWithChooser(openPath, filePath) },
+        {
+          text: 'Open with…',
+          onPress: () => openWithChooser(openPath, filePath, { mimeTypes, chooserTitle, fileLabel: label }),
+        },
       ],
     );
   } catch (error) {
-    console.log('export pdf error', error);
+    console.log(`export ${label} error`, error);
     onErrorToast?.({
       title: 'Failed',
       message: error?.response?.data?.message || 'Something went wrong. Please try again later.',
@@ -233,3 +241,27 @@ export const exportQuotationPdf = async ({
     onEnd?.();
   }
 };
+
+/**
+ * Download quotation PDF, then let the user open it with an app or go to the file location.
+ */
+export const exportQuotationPdf = (options = {}) => downloadQuotationFile({
+  ...options,
+  relativePath: options.relativePath || getQuotationPdfExportPath(options.quoteId),
+  extension: 'pdf',
+  mime: 'application/pdf',
+  label: 'PDF',
+  mimeTypes: ['application/pdf', 'application/x-pdf', 'application/octet-stream'],
+  chooserTitle: 'Open PDF with',
+});
+
+/** Download quotation Excel, then let the user open it. */
+export const exportQuotationExcel = (options = {}) => downloadQuotationFile({
+  ...options,
+  relativePath: options.relativePath || getQuotationExcelExportPath(options.quoteId),
+  extension: 'xlsx',
+  mime: EXCEL_MIME,
+  label: 'Excel',
+  mimeTypes: [EXCEL_MIME, 'application/vnd.ms-excel', 'application/octet-stream'],
+  chooserTitle: 'Open Excel with',
+});

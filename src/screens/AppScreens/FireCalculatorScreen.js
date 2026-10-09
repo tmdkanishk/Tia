@@ -15,6 +15,7 @@ import BackHeader from '../../components/BackHeader'
 import AddonSelector from '../../components/AddonSelector'
 import { useDispatch } from 'react-redux'
 import { showModal } from '../../features/app/appSlice'
+import { buildFireClonePrefill } from '../../features/quotations/cloneQuotationPrefill'
 
 const toInputValue = (value) => {
   if (value === null || value === undefined || value === '') return '';
@@ -27,6 +28,7 @@ const FireCalculatorScreen = () => {
   const dispatch = useDispatch();
   const { mode, quoteId, quotationData } = route.params || {};
   const isUpdateMode = mode === 'update' && !!quoteId;
+  const isCloneMode = mode === 'clone' && !!quotationData;
   const { width } = Dimensions.get('window');
   const [modalVisible, setModalVisible] = useState(false);
   const [riskCover, setRiskCover] = useState(riskFireCovers)
@@ -137,6 +139,30 @@ const FireCalculatorScreen = () => {
       }))
     );
   }, [isUpdateMode, quotationData]);
+
+  useEffect(() => {
+    if (!isCloneMode) return;
+    const prefill = buildFireClonePrefill(quotationData);
+    setForm({
+      customerDetails: prefill.customerDetails,
+      riskCovers: {
+        terrorism: prefill.terrorism,
+        burglary: prefill.burglary,
+      },
+      discounts: prefill.discounts,
+      sumInsured: null,
+      addons: null,
+    });
+    setRiskCover((prev) =>
+      prev.map((item) => ({
+        ...item,
+        selected: item.key === 'terrorism' ? prefill.terrorism : item.key === 'burglary' ? prefill.burglary : item.selected,
+      }))
+    );
+    setSumInsuredData(prefill.sumInsured);
+    setTotalSumInsured(prefill.totalSumInsured);
+    setSelectedAddons(prefill.addons);
+  }, [isCloneMode, quotationData]);
 
 
   const onSelectRiskCode = (data) => {
@@ -261,8 +287,14 @@ const FireCalculatorScreen = () => {
       <SafeAreaView>
         <View style={globalStyles.newContainer}>
           <BackHeader
-            title={isUpdateMode ? 'Update Fire Quotation' : 'Fire Calculator'}
-            subTitle={isUpdateMode ? 'Edit and recalculate this fire quotation.' : 'Calculate premium for Fire Insurance policies.'}
+            title={isUpdateMode ? 'Update Fire Quotation' : isCloneMode ? 'New Fire Quotation' : 'Fire Calculator'}
+            subTitle={
+              isUpdateMode
+                ? 'Edit and recalculate this fire quotation.'
+                : isCloneMode
+                  ? 'Copied from an existing quotation. Change what you need, then save a new one.'
+                  : 'Calculate premium for Fire Insurance policies.'
+            }
           />
           <KeyboardAvoidingView
             behavior='padding'

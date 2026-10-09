@@ -9,7 +9,7 @@ import { textStyles } from '../../utility/textStyles'
 import { IconComponent, icons } from '../../components/IconComponent'
 import { getQuotationDetails, resolveQuoteType } from '../../features/quotations/quotationsAPI'
 import { normalizeQuotationDetail } from '../../features/quotations/normalizeQuotationDetail'
-import { exportQuotationPdf } from '../../utility/exportQuotationPdf'
+import { exportQuotationExcel, exportQuotationPdf } from '../../utility/exportQuotationPdf'
 import { useDispatch, useSelector } from 'react-redux'
 import { setAppLoading, showModal } from '../../features/app/appSlice'
 import { formattedDate } from '../../utility/helper'
@@ -124,9 +124,9 @@ const buildRows = (source = {}, keys = [], options = {}) => {
 };
 
 const TYPE_META = {
-    fire: { title: 'Fire Quotation', accent: color.fire, softBg: color.lightFire, icon: icons.fire },
-    business: { title: 'Business Quotation', accent: color.primaryBlue, softBg: color.lightBlueBackground, icon: icons.businessins },
-    iar: { title: 'IAR Quotation', accent: color.icon, softBg: color.lightBlueBackground, icon: icons.industry },
+    fire: { title: 'Fire Quotation', accent: color.fire, softBg: color.lightFire, icon: icons.fire, calculator: 'FireCalculator' },
+    business: { title: 'Business Quotation', accent: color.primaryBlue, softBg: color.lightBlueBackground, icon: icons.businessins, calculator: 'BusinessCalculator' },
+    iar: { title: 'IAR Quotation', accent: color.icon, softBg: color.lightBlueBackground, icon: icons.industry, calculator: 'IARCalculator' },
 };
 
 const QuoteDetailScreen = ({ route }) => {
@@ -204,6 +204,17 @@ const QuoteDetailScreen = ({ route }) => {
         });
     };
 
+    const handleExportExcel = () => {
+        exportQuotationExcel({
+            quoteId,
+            accessToken,
+            onStart: () => dispatch(setAppLoading(true)),
+            onEnd: () => dispatch(setAppLoading(false)),
+            onSuccessToast: (payload) => dispatch(showModal(payload)),
+            onErrorToast: (payload) => dispatch(showModal(payload)),
+        });
+    };
+
     const handleUpdateQuotation = () => {
         const type = resolveQuoteType(
             data?.quotation?.type,
@@ -215,6 +226,21 @@ const QuoteDetailScreen = ({ route }) => {
         navigation.navigate('UpdateQuotation', {
             quoteId,
             quoteType: type,
+            quotationData: data,
+        });
+    };
+
+    const handleCloneQuotation = () => {
+        const type = resolveQuoteType(
+            data?.quotation?.type,
+            data?.quoteDetails?.type,
+            data?.type,
+            quoteType,
+            rawQuoteType,
+        );
+        const screen = (TYPE_META[type] || TYPE_META.fire).calculator;
+        navigation.navigate(screen, {
+            mode: 'clone',
             quotationData: data,
         });
     };
@@ -438,7 +464,7 @@ const QuoteDetailScreen = ({ route }) => {
                     <ScrollView
                         style={{ flex: 1 }}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 110 + footerBottomPad }}
+                        contentContainerStyle={{ paddingBottom: 150 + footerBottomPad }}
                     >
                         <View style={{ gap: 12, padding: 20 }}>
                             {renderCollapsibleSection('policyDetails', 'Policy Details', renderPolicyDetails(), true, 'file-document-outline')}
@@ -552,6 +578,8 @@ const QuoteDetailScreen = ({ route }) => {
 
             <QuotationActionFooter
                 onExportPdf={handleExportPdf}
+                onExportExcel={handleExportExcel}
+                onClone={handleCloneQuotation}
                 onUpdate={handleUpdateQuotation}
                 disabled={loading || !data}
                 accentColor={meta.accent}

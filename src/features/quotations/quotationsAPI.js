@@ -72,3 +72,7 @@ export const deleteQuotation = (quoteId) => {
 export const getQuotationPdfExportPath = (quoteId) => {
   return `/api/quotations/${quoteId}/export/pdf`;
 };
+
+export const getQuotationExcelExportPath = (quoteId) => {
+  return `/api/quotations/${quoteId}/export/excel`;
+};

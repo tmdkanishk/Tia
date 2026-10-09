@@ -40,14 +40,20 @@ const PARTICULAR_TO_ASSET = {
 };
 
 const assetBreakupFromCoverage = (sections = []) => {
+  // Burglary repeats plant, stock, furniture and other contents. Use the fire
+  // section only so those amounts are not added a second time. Building is
+  // only on fire, which is why it was not doubled.
+  const fire = sections.find((section) =>
+    /fire/i.test(`${section?.section_name || ''} ${section?.section_key || ''}`)
+  );
+  const sourceSections = fire ? [fire] : sections;
   const breakup = {};
-  sections.forEach((section) => {
+  sourceSections.forEach((section) => {
     (section?.items || []).forEach((item) => {
       const particular = String(item?.particular || '').trim().toUpperCase();
       const key = PARTICULAR_TO_ASSET[particular];
-      if (!key) return;
-      const amount = Number(item?.sum_insured ?? item?.sumInsured ?? 0) || 0;
-      breakup[key] = (breakup[key] || 0) + amount;
+      if (!key || breakup[key] != null) return;
+      breakup[key] = Number(item?.sum_insured ?? item?.sumInsured ?? 0) || 0;
     });
   });
   return breakup;
